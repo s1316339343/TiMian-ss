@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "updatedAt": "2026-02-10T09:00:00.000Z",
+  "banks": [
+    {
+      "id": "traffic-rules",
+      "title": "科目一 · 交通法规精选",
+      "description": "覆盖实习期、记分、酒驾、高速公路与灯光使用等高频考点。",
+      "category": "科目一",
+      "emoji": "🚦",
+      "color": "blue",
+      "source": "示例数据",
+      "file": "traffic-rules.json",
+      "questionCount": 25,
+      "singleCount": 18,
+      "multipleCount": 0,
+      "judgeCount": 7,
+      "fillCount": 0,
+      "shortCount": 0,
+      "createdAt": "2026-02-10T09:00:00.000Z",
+      "updatedAt": "2026-02-10T09:00:00.000Z"
+    },
+    {
+      "id": "computer-basics",
+      "title": "计算机基础 · 办公技能",
+      "description": "Excel、Word、PowerPoint 与 Windows 常用快捷键和基础概念。",
+      "category": "计算机",
+      "emoji": "💻",
+      "color": "emerald",
+      "source": "示例数据",
+      "file": "computer-basics.json",
+      "questionCount": 16,
+      "singleCount": 10,
+      "multipleCount": 0,
+      "judgeCount": 5,
+      "fillCount": 1,
+      "shortCount": 0,
+      "createdAt": "2026-02-09T09:00:00.000Z",
+      "updatedAt": "2026-02-09T09:00:00.000Z"
+    },
+    {
+      "id": "health-life",
+      "title": "生活常识 · 健康与安全",
+      "description": "体温心率、急救处理、消防与日常健康常识，适合快速自测。",
+      "category": "生活常识",
+      "emoji": "🩺",
+      "color": "violet",
+      "source": "示例数据",
+      "file": "health-life.json",
+      "questionCount": 13,
+      "singleCount": 8,
+      "multipleCount": 0,
+      "judgeCount": 5,
+      "fillCount": 0,
+      "shortCount": 0,
+      "createdAt": "2026-02-08T09:00:00.000Z",
+      "updatedAt": "2026-02-08T09:00:00.000Z"
+    }
+  ]
+}

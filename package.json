@@ -1,0 +1,22 @@
+{
+  "name": "timian",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "packageManager": "pnpm@11.7.0",
+  "description": "题面 TiMian - 纯静态 AI 题库刷题站（GitHub Pages）",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --port 4173 --strictPort",
+    "typecheck": "tsc --noEmit",
+    "hash-password": "node scripts/set-admin-password.mjs"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2",
+    "vite": "^8.3.5"
+  },
+  "dependencies": {
+    "pdfjs-dist": "^6.4.299"
+  }
+}
