@@ -51,7 +51,7 @@ const SYSTEM_PROMPT = `你是「题面 TiMian」的题库结构化助手。用�
   {"type":"single","stem":"单选题题干","options":["选项A文本","选项B文本","选项C文本","选项D文本"],"answer":"B","analysis":"简要解析","knowledge":"知识点","confidence":"high"},
   {"type":"multiple","stem":"多选题题干","options":["选项A文本","选项B文本","选项C文本","选项D文本"],"answer":["A","C"],"analysis":"简要解析","knowledge":"知识点","confidence":"high"},
   {"type":"judge","stem":"判断题题干","options":["正确","错误"],"answer":"正确","analysis":"简要解析","confidence":"high"},
-  {"type":"fill","stem":"填空题题干，空格用 ____ 表示","answer":"标准答案","analysis":"简要解析","knowledge":"知识点","confidence":"high"},
+  {"type":"fill","stem":"ZigBee 数据链路层分成 LLC 和（   ）两个子层。","answer":"MAC","analysis":"ZigBee 数据链路层分为 LLC 和 MAC 两个子层。","knowledge":"ZigBee 协议栈","confidence":"high"},
   {"type":"short","stem":"简答题题干","answer":"参考答案原文","analysis":"评分要点","knowledge":"知识点","confidence":"high"}
 ]}
 
@@ -61,7 +61,7 @@ const SYSTEM_PROMPT = `你是「题面 TiMian」的题库结构化助手。用�
 3. 单选题：type 固定为 "single"，options 为 2–6 个选项的纯文本数组，不要带“A.”“B、”这类前缀；answer 必须是单个选项字母（A/B/C/D…），且必须对应一个真实存在的选项。
 4. 多选题：type 固定为 "multiple"，options 为 2–6 个选项的纯文本数组；answer 为正确选项字母组成的数组（例如 ["A","C"]），必须列出全部正确选项，不要漏选；多选题至少有两个正确选项。
 5. 判断题：type 固定为 "judge"，options 固定为 ["正确","错误"]，answer 固定为 "正确" 或 "错误"。
-6. 填空题：type 固定为 "fill"，不要输出 options；题干中的空格统一用 ____ 表示；answer 为标准答案原文（尽量简短，多个空格可用空格或顿号连接）。
+6. 填空题：type 固定为 "fill"，不要输出 options。原文括号里已经有答案时（如“ZigBee 数据链路层分成 LLC 和（ MAC ）两个子层”），题干把括号内容替换成空括号（   ），answer 必须是括号里的实际内容“MAC”；原文是下划线空格时，题干保留 ____，answer 填实际内容。绝对不要把 answer 写成 "____"、"（ ）"、"答案" 这类占位符。
 7. 简答题：type 固定为 "short"，不要输出 options；answer 为参考答案原文，原文没有参考答案时填空字符串；analysis 可写评分要点。简答题不参与自动判分。
 8. 若原文给出了答案，必须严格采用原文答案，confidence 设为 "high"；若原文没有答案，可以依据专业知识给出参考答案，confidence 设为 "low"。不要编造原文中不存在的题目。
 9. analysis 用一句话说明依据，不超过 60 字；简答题可以写 2–3 条要点。knowledge 为可选的知识点标签。
@@ -395,12 +395,68 @@ function extractInlineFill(stem: string): { stem: string; answer: string } | nul
   };
 }
 
+function isFillPlaceholder(value: string): boolean {
+  const text = value.trim();
+  return (
+    !text ||
+    /^[_\uFF3F\s]+$/.test(text) ||
+    /^[（(]\s*[)）]$/.test(text) ||
+    /^(略|答案|待定|unknown)$/i.test(text)
+  );
+}
+
+function unwrapFillAnswer(value: string): string {
+  const text = value.trim();
+  const match = text.match(/^[（(]\s*(.*?)\s*[)）]$/);
+  return match ? match[1].trim() : text;
+}
+
+/**
+ * 模型经常把填空题答案输出成 ____ 或（ ），
+ * 这时回到当前分段的原文，按题干上下文把括号里的真实内容抓回来。
+ * 例：题干「分成 LLC 和（ ）两个子层」+ 原文「分成 LLC 和（ MAC ）两个子层」→ MAC
+ */
+function recoverFillAnswer(stem: string, sourceText: string): string {
+  if (!sourceText) return '';
+  const flat = (value: string): string => value.replace(/\s+/g, '');
+  const stemFlat = flat(stem);
+  const sourceFlat = flat(sourceText);
+  const marker = stemFlat.match(/([（(]\s*[)）]|_{2,}|＿{2,})/);
+  if (!marker || marker.index === undefined) return '';
+
+  const beforeFull = stemFlat.slice(0, marker.index);
+  const afterFull = stemFlat.slice(marker.index + marker[0].length).slice(0, 24);
+
+  for (const length of [20, 16, 12, 9, 6]) {
+    const before = beforeFull.slice(-length);
+    if (before.length < 4) continue;
+    let from = 0;
+    while (from < sourceFlat.length) {
+      const index = sourceFlat.indexOf(before, from);
+      if (index === -1) break;
+      const rest = sourceFlat.slice(index + before.length);
+      const match = rest.match(/^[（(]\s*([^（）()]{1,60}?)\s*[)）]/);
+      if (match) {
+        const answer = match[1].trim();
+        const trailing = rest.slice(match[0].length);
+        const afterOk =
+          !afterFull ||
+          trailing.startsWith(afterFull) ||
+          afterFull.startsWith(trailing.slice(0, afterFull.length));
+        if (answer && !isFillPlaceholder(answer) && afterOk) return answer;
+      }
+      from = index + before.length;
+    }
+  }
+  return '';
+}
+
 interface NormalizedChunk {
   questions: Question[];
   skipped: number;
 }
 
-function normalizeResponse(json: unknown): NormalizedChunk {
+function normalizeResponse(json: unknown, sourceText = ''): NormalizedChunk {
   let list: unknown[] = [];
   if (Array.isArray(json)) {
     list = json;
@@ -444,7 +500,10 @@ function normalizeResponse(json: unknown): NormalizedChunk {
       confidenceText === 'low' || raw.uncertain === true || raw.confident === false ? 'low' : 'high';
 
     if (type === 'fill') {
-      const answer = inlineFill?.answer ?? cleanAnswerText(rawAnswer);
+      const baseAnswer = inlineFill?.answer ?? unwrapFillAnswer(cleanAnswerText(rawAnswer));
+      const recovered = isFillPlaceholder(baseAnswer) ? recoverFillAnswer(stem, sourceText) : '';
+      const answer = recovered || baseAnswer;
+      const missing = isFillPlaceholder(answer);
       questions.push({
         id: uid('q-'),
         type: 'fill',
@@ -453,11 +512,7 @@ function normalizeResponse(json: unknown): NormalizedChunk {
         answer,
         analysis: pickText(raw.analysis, raw.explanation, raw.explain, raw.parse, raw.comment),
         knowledge: pickText(raw.knowledge, raw.knowledgePoint, raw.tag, raw.point),
-        confidence: inlineFill
-          ? 'high'
-          : baseConfidence === 'high' && !answer
-            ? 'low'
-            : baseConfidence,
+        confidence: inlineFill ? 'high' : missing ? 'low' : baseConfidence,
       });
       continue;
     }
@@ -466,15 +521,18 @@ function normalizeResponse(json: unknown): NormalizedChunk {
       // 模型有时会把「括号里写答案」的填空题输出成判断题
       if (/_{2,}|[（(]\s*[)）]/.test(stem)) {
         const judgeAnswer = /^(A|B|对|错|正确|错误|√|×)$/i.test(rawAnswer.trim());
+        const baseAnswer = judgeAnswer ? '' : unwrapFillAnswer(cleanAnswerText(rawAnswer));
+        const recovered = isFillPlaceholder(baseAnswer) ? recoverFillAnswer(stem, sourceText) : '';
+        const answer = recovered || baseAnswer;
         questions.push({
           id: uid('q-'),
           type: 'fill',
           stem,
           options: [],
-          answer: judgeAnswer ? '' : cleanAnswerText(rawAnswer),
+          answer,
           analysis: pickText(raw.analysis, raw.explanation, raw.explain, raw.parse, raw.comment),
           knowledge: pickText(raw.knowledge, raw.knowledgePoint, raw.tag, raw.point),
-          confidence: judgeAnswer ? 'low' : baseConfidence,
+          confidence: isFillPlaceholder(answer) ? 'low' : baseConfidence,
         });
         continue;
       }
@@ -600,13 +658,13 @@ async function parseChunk(
         { role: 'system', content: SYSTEM_PROMPT },
         {
           role: 'user',
-          content: `以下是从 PDF 中提取的文本，请提取其中的单选题、多选题、判断题、填空题和简答题。必须逐题输出全部题目，不要只输出前一部分，也不要因为题目较多而省略；如果原文包含多套题，也要全部提取。\n\n${text}`,
+          content: `以下是从 PDF 中提取的文本，请提取其中的单选题、多选题、判断题、填空题和简答题。必须逐题输出全部题目，不要只输出前一部分，也不要因为题目较多而省略；如果原文包含多套题，也要全部提取。填空题的 answer 必须是原文括号/空格中的实际内容，不能输出 "____" 或空括号。\n\n${text}`,
         },
       ],
       options.signal,
       4096,
     );
-    return normalizeResponse(extractJson(content));
+    return normalizeResponse(extractJson(content), text);
   } catch (error) {
     if (error instanceof AIError && error.kind === 'format' && depth < 2 && text.length > 1200) {
       // 可能是输出被截断或漏题：把这一段再拆成两半重试
