@@ -11,6 +11,7 @@ export type AIErrorKind =
   | 'cors'
   | 'http'
   | 'format'
+  | 'timeout'
   | 'aborted';
 
 export class AIError extends Error {
@@ -108,6 +109,7 @@ async function callChat(
   maxTokens: number,
   allowJsonModeFallback = true,
   useJsonMode = config.jsonMode,
+  timeoutMs = 120_000,
 ): Promise<string> {
   const url = buildUrl(config.baseUrl);
   const payload: Record<string, unknown> = {
@@ -119,6 +121,17 @@ async function callChat(
   };
   if (useJsonMode) payload.response_format = { type: 'json_object' };
 
+  if (signal?.aborted) throw new AIError('已取消解析', 'aborted');
+
+  const controller = new AbortController();
+  let timedOut = false;
+  const timeoutTimer = window.setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, timeoutMs);
+  const onAbort = (): void => controller.abort();
+  signal?.addEventListener('abort', onAbort, { once: true });
+
   let response: Response;
   try {
     response = await fetch(url, {
@@ -128,14 +141,24 @@ async function callChat(
         Authorization: `Bearer ${config.apiKey.trim()}`,
       },
       body: JSON.stringify(payload),
-      signal,
+      signal: controller.signal,
     });
   } catch (error) {
+    if (signal?.aborted) throw new AIError('已取消解析', 'aborted');
+    if (timedOut) {
+      throw new AIError(
+        `AI 接口超过 ${Math.round(timeoutMs / 1000)} 秒没有返回，已中止请求。请检查网络 / 代理，换一个更快的模型，或减少 PDF 页数后重试。`,
+        'timeout',
+      );
+    }
     if ((error as Error)?.name === 'AbortError') throw new AIError('已取消解析', 'aborted');
     throw new AIError(
       '无法连接 AI 接口：可能是网络不通，或该接口不允许浏览器跨域访问（CORS）。可在「AI 设置」里改用支持跨域的接口，或按 README 部署一个代理。',
       'cors',
     );
+  } finally {
+    window.clearTimeout(timeoutTimer);
+    signal?.removeEventListener('abort', onAbort);
   }
 
   if (!response.ok) {
@@ -150,7 +173,7 @@ async function callChat(
 
     if (response.status === 400 && useJsonMode && allowJsonModeFallback) {
       // 部分服务不支持 response_format，去掉后重试一次
-      return callChat(config, messages, signal, maxTokens, false, false);
+      return callChat(config, messages, signal, maxTokens, false, false, timeoutMs);
     }
     if (response.status === 401 || response.status === 403) {
       throw new AIError(
@@ -744,6 +767,9 @@ export async function testAIConfig(config: AIConfig): Promise<{ ok: boolean; mes
       ],
       undefined,
       512,
+      true,
+      config.jsonMode,
+      30_000,
     );
     return { ok: true, message: `连接成功，模型返回：${content.trim().slice(0, 40) || '(空)'}` };
   } catch (error) {

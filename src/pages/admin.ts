@@ -63,6 +63,7 @@ const AI_HINTS: Record<string, string> = {
   rate: '请求过于频繁或额度不足，请稍后再试。',
   format: '模型输出不是合法 JSON，可以再试一次，或换一个更强的模型。',
   network: '请检查网络连接后重试。',
+  timeout: 'AI 接口长时间没有返回。请先点「测试连接」确认接口可用；也可以换一个更快的模型，或减少 PDF 页数。',
   model: '请检查 Base URL 与模型名称是否匹配。',
 };
 
@@ -247,6 +248,15 @@ export function renderAdmin(root: HTMLElement): () => void {
     updateParseButton(root, state, true);
     setStep(1);
 
+    let aiElapsedTimer: number | null = null;
+    let aiStartedAt = 0;
+    const stopElapsedTimer = (): void => {
+      if (aiElapsedTimer !== null) {
+        window.clearInterval(aiElapsedTimer);
+        aiElapsedTimer = null;
+      }
+    };
+
     try {
       let text = '';
       let sourceName = '';
@@ -309,9 +319,18 @@ export function renderAdmin(root: HTMLElement): () => void {
       }
 
       state.sourceFile = sourceName;
+      aiStartedAt = Date.now();
+      stopElapsedTimer();
+      aiElapsedTimer = window.setInterval(() => {
+        if (!state.parsing) return;
+        const detail = qs<HTMLElement>('#status-detail', root);
+        if (!detail) return;
+        const base = (detail.textContent ?? '').replace(/（已等待 \d+ 秒）$/, '');
+        detail.textContent = `${base}（已等待 ${Math.floor((Date.now() - aiStartedAt) / 1000)} 秒）`;
+      }, 1000);
       showStatus(root, {
         title: 'AI 正在解析题目',
-        detail: '正在等待第一段结果…',
+        detail: '正在等待第一段结果…（超过 120 秒会自动中止）',
         progress: 52,
         tone: 'running',
         cancel: true,
@@ -322,13 +341,14 @@ export function renderAdmin(root: HTMLElement): () => void {
         onProgress: (progress) => {
           showStatus(root, {
             title: 'AI 正在解析题目',
-            detail: `第 ${progress.chunkIndex} / ${progress.chunkTotal} 段 · 已识别 ${progress.found} 题`,
+            detail: `第 ${progress.chunkIndex} / ${progress.chunkTotal} 段 · 已识别 ${progress.found} 题 · 等待模型返回`,
             progress: 52 + (progress.chunkIndex / progress.chunkTotal) * 45,
             tone: 'running',
             cancel: true,
           });
         },
       });
+      stopElapsedTimer();
 
       if (!result.questions.length) {
         throw new Error('AI 没有识别到单选题、多选题、判断题、填空题或简答题。请检查文本内容，或更换模型后重试。');
@@ -358,8 +378,10 @@ export function renderAdmin(root: HTMLElement): () => void {
       toast(`解析完成，共识别 ${result.questions.length} 道题`, 'success');
       qs<HTMLElement>('#review-panel', root)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } catch (error) {
+      stopElapsedTimer();
       handleParseError(root, error);
     } finally {
+      stopElapsedTimer();
       state.parsing = false;
       state.abort = null;
       updateParseButton(root, state, false);
