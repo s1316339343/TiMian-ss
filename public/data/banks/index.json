@@ -1,7 +1,25 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-31T10:31:57.472Z",
+  "updatedAt": "2026-10-31T10:33:25.697Z",
   "banks": [
+    {
+      "id": "bank-mvw35hauesg0zm1e0po27",
+      "title": "物联网架构与技术考试题",
+      "description": "",
+      "category": "",
+      "emoji": "📘",
+      "color": "blue",
+      "source": "物联网架构与技术考试题.pdf",
+      "file": "bank-mvw35hauesg0zm1e0po27.json",
+      "questionCount": 41,
+      "singleCount": 15,
+      "multipleCount": 0,
+      "judgeCount": 0,
+      "fillCount": 15,
+      "shortCount": 11,
+      "createdAt": "2026-10-31T07:35:58.762Z",
+      "updatedAt": "2026-10-31T10:32:46.658Z"
+    },
     {
       "id": "bank-mvw95kln1pgczed1i017g6",
       "title": "2026沧交微机原理与架构考试题",

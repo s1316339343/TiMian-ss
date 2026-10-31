@@ -1,0 +1,690 @@
+{
+  "id": "bank-mvw35hauesg0zm1e0po27",
+  "title": "物联网架构与技术考试题",
+  "description": "",
+  "category": "",
+  "emoji": "📘",
+  "color": "blue",
+  "source": "物联网架构与技术考试题.pdf",
+  "file": "bank-mvw35hauesg0zm1e0po27.json",
+  "createdAt": "2026-10-31T07:35:58.762Z",
+  "updatedAt": "2026-10-31T10:32:46.658Z",
+  "questions": [
+    {
+      "id": "q1",
+      "type": "single",
+      "stem": "下列属于非竞争型 MAC 协议的是（ ）。",
+      "options": [
+        {
+          "key": "A",
+          "text": "1-坚持 CSMA"
+        },
+        {
+          "key": "B",
+          "text": "p-坚持 CSMA"
+        },
+        {
+          "key": "C",
+          "text": "ALOHA"
+        },
+        {
+          "key": "D",
+          "text": "TDMA"
+        }
+      ],
+      "answer": "D",
+      "analysis": "TDMA 是时分多址，通过预分配时隙实现无冲突通信，属于非竞争型 MAC 协议。",
+      "knowledge": "MAC 协议分类",
+      "confidence": "high"
+    },
+    {
+      "id": "q2",
+      "type": "single",
+      "stem": "蓝牙设备在通信连接状态下，（ ）模式的功耗。",
+      "options": [
+        {
+          "key": "A",
+          "text": "激活模式"
+        },
+        {
+          "key": "B",
+          "text": "呼吸模式"
+        },
+        {
+          "key": "C",
+          "text": "保持模式"
+        },
+        {
+          "key": "D",
+          "text": "休眠模式"
+        }
+      ],
+      "answer": "A",
+      "analysis": "激活模式下蓝牙设备持续收发数据，功耗最高。",
+      "knowledge": "蓝牙低功耗模式",
+      "confidence": "high"
+    },
+    {
+      "id": "q3",
+      "type": "single",
+      "stem": "ZigBee（ ）负责设备间无线数据链路的建立、维护和结束。",
+      "options": [
+        {
+          "key": "A",
+          "text": "物理层"
+        },
+        {
+          "key": "B",
+          "text": "MAC 层"
+        },
+        {
+          "key": "C",
+          "text": "网络/安全层"
+        },
+        {
+          "key": "D",
+          "text": "支持/应用层"
+        }
+      ],
+      "answer": "B",
+      "analysis": "ZigBee MAC 层定义了信道接入、帧结构、链路建立与维护等机制。",
+      "knowledge": "ZigBee 协议栈分层功能",
+      "confidence": "high"
+    },
+    {
+      "id": "q4",
+      "type": "single",
+      "stem": "（ ）是负责对物联网收集到的信息进行处理、管理、决策的后台计算处理平台。",
+      "options": [
+        {
+          "key": "A",
+          "text": "感知层"
+        },
+        {
+          "key": "B",
+          "text": "网络层"
+        },
+        {
+          "key": "C",
+          "text": "云计算平台"
+        },
+        {
+          "key": "D",
+          "text": "物理层"
+        }
+      ],
+      "answer": "C",
+      "analysis": "云计算平台提供海量数据存储、分析、智能决策等能力，是物联网的后台核心。",
+      "knowledge": "物联网三层架构",
+      "confidence": "high"
+    },
+    {
+      "id": "q5",
+      "type": "single",
+      "stem": "所有通信的服务器或客户端，分配到不同频率的信道上，相互之间没有干扰的技术为（ ）。",
+      "options": [
+        {
+          "key": "A",
+          "text": "FDMA"
+        },
+        {
+          "key": "B",
+          "text": "TDMA"
+        },
+        {
+          "key": "C",
+          "text": "CDMA"
+        },
+        {
+          "key": "D",
+          "text": "SDMA"
+        }
+      ],
+      "answer": "A",
+      "analysis": "FDMA 将总频带划分为互不重叠的子频带，各用户独占频率资源，无同频干扰。",
+      "knowledge": "多址接入技术",
+      "confidence": "high"
+    },
+    {
+      "id": "q6",
+      "type": "single",
+      "stem": "全球通用的 ISM 频段是（ ）。",
+      "options": [
+        {
+          "key": "A",
+          "text": "1.8~1.88GHz"
+        },
+        {
+          "key": "B",
+          "text": "2.1~2.18GHz"
+        },
+        {
+          "key": "C",
+          "text": "2.5~2.8Ghz"
+        },
+        {
+          "key": "D",
+          "text": "2.4~2.48GHz"
+        }
+      ],
+      "answer": "D",
+      "analysis": "2.4~2.48GHz 是全球免许可、广泛使用的 ISM 频段，ZigBee、蓝牙、WiFi 均工作于此。",
+      "knowledge": "ISM 频段标准",
+      "confidence": "high"
+    },
+    {
+      "id": "q7",
+      "type": "single",
+      "stem": "在各种传感器的原始数据未经预处理前就进行数据融合属于（ ）。",
+      "options": [
+        {
+          "key": "A",
+          "text": "像素级融合"
+        },
+        {
+          "key": "B",
+          "text": "特征级融合"
+        },
+        {
+          "key": "C",
+          "text": "决策级融合"
+        },
+        {
+          "key": "D",
+          "text": "作业级融合"
+        }
+      ],
+      "answer": "A",
+      "analysis": "像素级融合直接对原始传感信号（如图像像素、原始波形）进行融合，未提取特征。",
+      "knowledge": "多传感器数据融合层次",
+      "confidence": "high"
+    },
+    {
+      "id": "q8",
+      "type": "single",
+      "stem": "在 OSI 协议体系中，负责将二进制数据流封装成帧的（ ）。",
+      "options": [
+        {
+          "key": "A",
+          "text": "链路层"
+        },
+        {
+          "key": "B",
+          "text": "传输层"
+        },
+        {
+          "key": "C",
+          "text": "表示层"
+        },
+        {
+          "key": "D",
+          "text": "网络层"
+        }
+      ],
+      "answer": "A",
+      "analysis": "OSI 数据链路层完成成帧、差错控制、流量控制，将比特流组织为帧。",
+      "knowledge": "OSI 参考模型",
+      "confidence": "high"
+    },
+    {
+      "id": "q9",
+      "type": "single",
+      "stem": "ZigBee 网络设备（ ），只能传送信息给 FFD 或从 FFD 接收信息。",
+      "options": [
+        {
+          "key": "A",
+          "text": "网络协调器"
+        },
+        {
+          "key": "B",
+          "text": "精简功能设备"
+        },
+        {
+          "key": "C",
+          "text": "全功能设备"
+        },
+        {
+          "key": "D",
+          "text": "交换机"
+        }
+      ],
+      "answer": "B",
+      "analysis": "RFD（精简功能设备）仅支持有限功能，必须通过 FFD（全功能设备）通信，不能作为路由器。",
+      "knowledge": "ZigBee 设备类型",
+      "confidence": "high"
+    },
+    {
+      "id": "q10",
+      "type": "single",
+      "stem": "在移动通信网络中（ ）负责信息的交换和集中控制功能。",
+      "options": [
+        {
+          "key": "A",
+          "text": "BS"
+        },
+        {
+          "key": "B",
+          "text": "中继传输系统"
+        },
+        {
+          "key": "C",
+          "text": "MS"
+        },
+        {
+          "key": "D",
+          "text": "MSC"
+        }
+      ],
+      "answer": "D",
+      "analysis": "MSC（移动交换中心）是蜂窝网络核心网关键节点，负责呼叫控制、切换、计费及信令管理。",
+      "knowledge": "移动通信网络架构",
+      "confidence": "high"
+    },
+    {
+      "id": "q11",
+      "type": "single",
+      "stem": "传感器一般由（ ）、转换元件和转换电路构成。",
+      "options": [
+        {
+          "key": "A",
+          "text": "集成电路"
+        },
+        {
+          "key": "B",
+          "text": "敏感电路"
+        },
+        {
+          "key": "C",
+          "text": "敏感元件"
+        },
+        {
+          "key": "D",
+          "text": "数字电路"
+        }
+      ],
+      "answer": "C",
+      "analysis": "敏感元件直接感受被测量并输出相应物理量变化，是传感器感知功能的核心部件。",
+      "knowledge": "传感器基本组成",
+      "confidence": "high"
+    },
+    {
+      "id": "q12",
+      "type": "single",
+      "stem": "56MHz 属于 RFID（ ）的工作频率。",
+      "options": [
+        {
+          "key": "A",
+          "text": "低频"
+        },
+        {
+          "key": "B",
+          "text": "超高频"
+        },
+        {
+          "key": "C",
+          "text": "高频"
+        },
+        {
+          "key": "D",
+          "text": "微波"
+        }
+      ],
+      "answer": "C",
+      "analysis": "RFID 高频（HF）标准频段为 13.56 MHz，符合 ISO/IEC 14443 和 15693 协议。",
+      "knowledge": "RFID 工作频段划分",
+      "confidence": "high"
+    },
+    {
+      "id": "q13",
+      "type": "single",
+      "stem": "下列无线通信技术中，功耗最小的是（ ）。",
+      "options": [
+        {
+          "key": "A",
+          "text": "蓝牙"
+        },
+        {
+          "key": "B",
+          "text": "WiFi"
+        },
+        {
+          "key": "C",
+          "text": "ZigBee"
+        },
+        {
+          "key": "D",
+          "text": "移动通信技术"
+        }
+      ],
+      "answer": "C",
+      "analysis": "ZigBee 专为低功耗、低速率传感网络设计，典型休眠电流仅数微安，低于蓝牙和 WiFi。",
+      "knowledge": "无线通信技术功耗特性",
+      "confidence": "high"
+    },
+    {
+      "id": "q14",
+      "type": "single",
+      "stem": "以下中间件中，可以使得客户端通过远程控制，调用位于远方的服务器中程序的中间件是（ ）。",
+      "options": [
+        {
+          "key": "A",
+          "text": "MOM"
+        },
+        {
+          "key": "B",
+          "text": "SOA"
+        },
+        {
+          "key": "C",
+          "text": "RPC"
+        },
+        {
+          "key": "D",
+          "text": "ORB"
+        }
+      ],
+      "answer": "C",
+      "analysis": "RPC（远程过程调用）允许本地程序像调用本地函数一样调用远程服务器上的过程。",
+      "knowledge": "中间件类型与功能",
+      "confidence": "high"
+    },
+    {
+      "id": "q15",
+      "type": "single",
+      "stem": "在云计算平台中，（ ）软件即服务。",
+      "options": [
+        {
+          "key": "A",
+          "text": "SaaS"
+        },
+        {
+          "key": "B",
+          "text": "PaaS"
+        },
+        {
+          "key": "C",
+          "text": "IaaS"
+        },
+        {
+          "key": "D",
+          "text": "QaaS"
+        }
+      ],
+      "answer": "A",
+      "analysis": "SaaS（Software as a Service）是云计算最上层服务模式，用户通过网络使用应用软件。",
+      "knowledge": "云计算服务模型",
+      "confidence": "high"
+    },
+    {
+      "id": "q16",
+      "type": "fill",
+      "stem": "ZigBee 数据链路层分成 LLC 和（ ）两个子层。",
+      "options": [],
+      "answer": "MAC",
+      "analysis": "ZigBee 数据链路层分为 LLC 和 MAC 两个子层。",
+      "knowledge": "ZigBee 协议栈",
+      "confidence": "high"
+    },
+    {
+      "id": "q17",
+      "type": "fill",
+      "stem": "多跳网络分层结构中成员节点的数据先转发给（ ）。",
+      "options": [],
+      "answer": "簇头节点",
+      "analysis": "在分簇路由中，普通成员节点将数据汇聚至簇头节点，再由簇头统一上传。",
+      "knowledge": "无线传感网分簇结构",
+      "confidence": "high"
+    },
+    {
+      "id": "q18",
+      "type": "fill",
+      "stem": "二维码目前不能表示的数据类型（ ）。",
+      "options": [],
+      "answer": "视频",
+      "analysis": "二维码容量有限（通常 KB 级），仅能编码文本、URL、小图片等，无法直接承载视频流。",
+      "knowledge": "二维码编码能力",
+      "confidence": "high"
+    },
+    {
+      "id": "q19",
+      "type": "fill",
+      "stem": "ZigBee 无需人工干预，网络节点能够感知其他节点的存在，并确定连结关系，组成结构化的网络。体现了其（ ）的特点。",
+      "options": [],
+      "answer": "自组织功能",
+      "analysis": "自组织功能指网络自动发现邻居、建立拓扑、修复链路，无需人工配置。",
+      "knowledge": "ZigBee 网络特性",
+      "confidence": "high"
+    },
+    {
+      "id": "q20",
+      "type": "fill",
+      "stem": "传输层主要使用两种协议：传输控制协议和（ ）。",
+      "options": [],
+      "answer": "UDP",
+      "analysis": "TCP 和 UDP 是传输层两大核心协议，前者面向连接可靠，后者无连接高效。",
+      "knowledge": "TCP/IP 协议栈",
+      "confidence": "high"
+    },
+    {
+      "id": "q21",
+      "type": "fill",
+      "stem": "无线传感网的协议栈其纵向由（ ）、连接管理平面和任务管理平面构成。",
+      "options": [],
+      "answer": "能量管理平面",
+      "analysis": "WSN 协议栈纵向三平面：能量管理、连接管理、任务管理，突出低功耗设计。",
+      "knowledge": "无线传感网协议栈结构",
+      "confidence": "high"
+    },
+    {
+      "id": "q22",
+      "type": "fill",
+      "stem": "利用 RFID、传感器、二维码等随时随地获取物体的信息，指的是（ ）。",
+      "options": [],
+      "answer": "全面感知",
+      "analysis": "全面感知是物联网第一层核心特征，强调泛在化、实时化、多模态信息采集。",
+      "knowledge": "物联网基本特征",
+      "confidence": "high"
+    },
+    {
+      "id": "q23",
+      "type": "fill",
+      "stem": "在一个微微网中，一个蓝牙的主设备，最多可以连接（ ）从设备。",
+      "options": [],
+      "answer": "7",
+      "analysis": "经典蓝牙（BR/EDR）微微网支持 1 主 + 7 活跃从设备（最多 255 个 parked 设备）。",
+      "knowledge": "蓝牙网络拓扑",
+      "confidence": "high"
+    },
+    {
+      "id": "q24",
+      "type": "fill",
+      "stem": "典型的 RFID 系统主要由阅读器、电子标签、（ ）和应用系统构成。",
+      "options": [],
+      "answer": "中间件",
+      "analysis": "中间件连接读写器与应用系统，完成数据过滤、聚合、格式转换等功能。",
+      "knowledge": "RFID 系统架构",
+      "confidence": "high"
+    },
+    {
+      "id": "q25",
+      "type": "fill",
+      "stem": "RFID 技术的基本工作原理是由（ ）发射特定频率的无线电波能量。",
+      "options": [],
+      "answer": "阅读器",
+      "analysis": "阅读器主动发射电磁波激励无源标签，或与有源标签进行双向通信。",
+      "knowledge": "RFID 工作原理",
+      "confidence": "high"
+    },
+    {
+      "id": "q26",
+      "type": "fill",
+      "stem": "ZigBee 网络拓扑结构有星状网结构、树状网结构和（ ）结构组成。",
+      "options": [],
+      "answer": "网状网",
+      "analysis": "ZigBee 支持星型、树型、网状（Mesh）三种拓扑，Mesh 提供高可靠性与自愈能力。",
+      "knowledge": "ZigBee 网络拓扑",
+      "confidence": "high"
+    },
+    {
+      "id": "q27",
+      "type": "fill",
+      "stem": "互联网从其工作方式上看，可以划分为两大块，（ ）和边缘部分。",
+      "options": [],
+      "answer": "核心部分",
+      "analysis": "互联网核心部分由大量路由器构成，负责高速转发；边缘部分包括端系统（主机、手机等）。",
+      "knowledge": "互联网体系结构",
+      "confidence": "high"
+    },
+    {
+      "id": "q28",
+      "type": "fill",
+      "stem": "指纹识别的优点是（ ）、复杂程度高。",
+      "options": [],
+      "answer": "专一性强",
+      "analysis": "指纹具有唯一性与稳定性，个体差异大，伪造难度高，故专一性强。",
+      "knowledge": "生物特征识别特性",
+      "confidence": "high"
+    },
+    {
+      "id": "q29",
+      "type": "fill",
+      "stem": "条形码是利用（ ）和空构成二进制的“0”和“1”。",
+      "options": [],
+      "answer": "条",
+      "analysis": "条形码通过不同宽度的黑色条（吸收光）与白色空（反射光）组合编码信息。",
+      "knowledge": "条形码编码原理",
+      "confidence": "high"
+    },
+    {
+      "id": "q30",
+      "type": "fill",
+      "stem": "（ ）采用报文数据的存储转发技术。",
+      "options": [],
+      "answer": "分组交换",
+      "analysis": "分组交换将数据分割为分组，经网络节点存储、查表、转发，是互联网基础技术。",
+      "knowledge": "交换技术",
+      "confidence": "high"
+    },
+    {
+      "id": "q31",
+      "type": "short",
+      "stem": "简述物联网的研究方向。",
+      "options": [],
+      "answer": "1.跟踪 2.监控 3.定位 4.识别。",
+      "analysis": "评分要点：答出任意3项得满分；需体现感知与应用结合；补充说明可酌情加分。",
+      "knowledge": "物联网研究范畴",
+      "confidence": "high"
+    },
+    {
+      "id": "q32",
+      "type": "short",
+      "stem": "简述物联网网关。",
+      "options": [],
+      "answer": "网关是无线传感网上的协议转换枢纽，连接感知层与网络层，实现异构网络互通、数据预处理、设备管理。",
+      "analysis": "评分要点：包含协议转换、连接感知与网络层、异构互通、数据预处理四要素；缺一项扣1分。",
+      "knowledge": "物联网网关功能",
+      "confidence": "high"
+    },
+    {
+      "id": "q33",
+      "type": "short",
+      "stem": "描述无线传感网络的结构体系。",
+      "options": [],
+      "answer": "横向：物理层、链路层、网络层、传输层、应用层；纵向：能量管理平面、连接管理平面、任务管理平面。",
+      "analysis": "评分要点：横向五层协议栈+纵向三管理平面；名称准确；顺序可不严格。",
+      "knowledge": "无线传感网体系结构",
+      "confidence": "high"
+    },
+    {
+      "id": "q34",
+      "type": "short",
+      "stem": "简述无线传感网非竞争 MAC 协议。",
+      "options": [],
+      "answer": "1.频分多址 FDMA 2.时分多址 TDMA 3.码分多址 CDMA",
+      "analysis": "评分要点：列出全部三项；指出其共性为预先分配资源、避免碰撞；每项1分。",
+      "knowledge": "WSN MAC 协议",
+      "confidence": "high"
+    },
+    {
+      "id": "q35",
+      "type": "short",
+      "stem": "描述物联网感知层中自动识别技术。",
+      "options": [],
+      "answer": "数据不是用键盘人工录入，通过两个物体近距离接触，把物体的标识、信息等传入计算机内部存储程序。",
+      "analysis": "评分要点：强调非人工录入、近距离交互、标识信息自动采集；典型技术如RFID、条形码需提及。",
+      "knowledge": "自动识别技术",
+      "confidence": "high"
+    },
+    {
+      "id": "q36",
+      "type": "short",
+      "stem": "简述 RFID 系统的架构。",
+      "options": [],
+      "answer": "电子标签、中间件、读写器（阅读器）、后端应用系统。",
+      "analysis": "评分要点：四个核心组件缺一不可；读写器与阅读器为同一概念；中间件作用需明确。",
+      "knowledge": "RFID 系统组成",
+      "confidence": "high"
+    },
+    {
+      "id": "q37",
+      "type": "short",
+      "stem": "浅谈无线传感网架构五层模型。",
+      "options": [],
+      "answer": "物理层、数据链路层、网络层、传输层、应用层。",
+      "analysis": "评分要点：完整列出五层；物理层对应信号收发，应用层对应监测业务；每层1分。",
+      "knowledge": "WSN 协议栈",
+      "confidence": "high"
+    },
+    {
+      "id": "q38",
+      "type": "short",
+      "stem": "浅谈物联网安全机制中 WSN 的入侵检测与容侵容错技术。",
+      "options": [],
+      "answer": "容侵：出现入侵，出现 Bug 时，系统仍然正常运转。",
+      "analysis": "评分要点：区分入侵检测（识别攻击）与容侵/容错（系统持续可用）；容侵强调抗攻击韧性，容错强调故障恢复能力。",
+      "knowledge": "WSN 安全机制",
+      "confidence": "high"
+    },
+    {
+      "id": "q39",
+      "type": "short",
+      "stem": "简述无线传感网的时间同步必要性。",
+      "options": [],
+      "answer": "用于数据融合、TDMA 时隙调度、节点休眠唤醒协同、给采集数据打上准确时间戳，保证事件时序正确。",
+      "analysis": "评分要点：至少答出3项必要性；强调晶振漂移导致需同步；时间戳与时序是关键得分点。",
+      "knowledge": "WSN 时间同步",
+      "confidence": "high"
+    },
+    {
+      "id": "q40",
+      "type": "short",
+      "stem": "浅谈物联网中云计算的服务模式与关键技术。",
+      "options": [],
+      "answer": "IaaS、PaaS、SaaS。",
+      "analysis": "评分要点：三大服务模式全列；IaaS=基础设施，PaaS=平台，SaaS=软件；关键技术需含虚拟化、分布式存储。",
+      "knowledge": "云计算服务模型",
+      "confidence": "high"
+    },
+    {
+      "id": "q41",
+      "type": "short",
+      "stem": "结合自己理解，描述一个你较熟悉的物联网技术应用场景，并对物联网技术的发展前景谈谈你自己的看法。",
+      "options": [],
+      "answer": "应用场景：①智慧农业：传感器采集温湿度，自动灌溉；②智慧家居：空调、灯光、门锁远程控制；③智慧物流：RFID 跟踪货物运输；④智能安防：摄像头、红外传感器入侵报警；⑤智慧交通：车牌识别、路况监测；⑥工业物联网：设备状态监测、故障预警。\n前景：横向联合、纵向深入。",
+      "analysis": "评分要点：场景需具体（含技术+功能），至少2例；前景需体现跨行业融合（横向）与技术纵深（低功耗、边缘智能等）。",
+      "knowledge": "物联网应用与发展趋势",
+      "confidence": "high"
+    }
+  ],
+  "questionCount": 41,
+  "singleCount": 15,
+  "multipleCount": 0,
+  "judgeCount": 0,
+  "fillCount": 15,
+  "shortCount": 11,
+  "meta": {
+    "sourceFile": "物联网架构与技术考试题.pdf",
+    "model": "qwen-plus",
+    "generator": "TiMian v1.0.0 · AI"
+  }
+}
