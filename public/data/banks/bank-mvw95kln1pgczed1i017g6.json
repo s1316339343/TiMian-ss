@@ -1,0 +1,825 @@
+{
+  "id": "bank-mvw95kln1pgczed1i017g6",
+  "title": "专升本复习题（2026110）(1)",
+  "description": "",
+  "category": "",
+  "emoji": "📘",
+  "color": "blue",
+  "source": "专升本复习题（2026110）(1).pdf",
+  "file": "bank-mvw95kln1pgczed1i017g6.json",
+  "createdAt": "2026-10-31T10:25:51.720Z",
+  "updatedAt": "2026-10-31T10:27:37.788Z",
+  "questions": [
+    {
+      "id": "q1",
+      "type": "single",
+      "stem": "执行指令 MOV AL, [SI]时，所读取的数据应在（ ）段中。",
+      "options": [
+        {
+          "key": "A",
+          "text": "CS"
+        },
+        {
+          "key": "B",
+          "text": "DS"
+        },
+        {
+          "key": "C",
+          "text": "ES"
+        },
+        {
+          "key": "D",
+          "text": "SS"
+        }
+      ],
+      "answer": "B",
+      "analysis": "MOV AL,[SI]默认使用DS段寄存器作为段基址。",
+      "knowledge": "8086寻址方式与段寄存器默认规则",
+      "confidence": "high"
+    },
+    {
+      "id": "q2",
+      "type": "single",
+      "stem": "下列 8086 指令中，源操作数的寻址方式为“寄存器寻址” 的是（ ）。",
+      "options": [
+        {
+          "key": "A",
+          "text": "MOV AX，1234H"
+        },
+        {
+          "key": "B",
+          "text": "MOV AX，BX"
+        },
+        {
+          "key": "C",
+          "text": "MOV AX，[BX]"
+        },
+        {
+          "key": "D",
+          "text": "MOV AX，[BX+100H]"
+        }
+      ],
+      "answer": "B",
+      "analysis": "MOV AX,BX中BX是源操作数，直接使用寄存器内容，属寄存器寻址。",
+      "knowledge": "8086寻址方式",
+      "confidence": "high"
+    },
+    {
+      "id": "q3",
+      "type": "single",
+      "stem": "在 8086 的存储器组织中，每个存储单元都有一个唯一的 20 位物理地址，它是由段地址和偏移地址通过（ ）计算得到的",
+      "options": [
+        {
+          "key": "A",
+          "text": "段地址× 10H+偏移地址"
+        },
+        {
+          "key": "B",
+          "text": "段地址× 16H+偏移地址"
+        },
+        {
+          "key": "C",
+          "text": "段地址× 10+偏移地址"
+        },
+        {
+          "key": "D",
+          "text": "段地址× 8H+偏移地址"
+        }
+      ],
+      "answer": "A",
+      "analysis": "8086物理地址=段地址×16（即10H）+偏移地址。",
+      "knowledge": "8086物理地址形成机制",
+      "confidence": "high"
+    },
+    {
+      "id": "q4",
+      "type": "single",
+      "stem": "8086CPU 芯片的外部引线中，数据线和地址线的条数分别是( )。",
+      "options": [
+        {
+          "key": "A",
+          "text": "20 条和 16 条"
+        },
+        {
+          "key": "B",
+          "text": "16 条和 20 条"
+        },
+        {
+          "key": "C",
+          "text": "20 条和 8 条"
+        },
+        {
+          "key": "D",
+          "text": "20 条和 4 条"
+        }
+      ],
+      "answer": "B",
+      "analysis": "8086有16条双向数据线、20条单向地址线。",
+      "knowledge": "8086引脚功能",
+      "confidence": "high"
+    },
+    {
+      "id": "q5",
+      "type": "single",
+      "stem": "8086 中负责形成物理地址的部件是（ ）。",
+      "options": [
+        {
+          "key": "A",
+          "text": "EU"
+        },
+        {
+          "key": "B",
+          "text": "BIU"
+        },
+        {
+          "key": "C",
+          "text": "ALU"
+        },
+        {
+          "key": "D",
+          "text": "指令队列"
+        }
+      ],
+      "answer": "B",
+      "analysis": "BIU（总线接口单元）负责计算物理地址并管理总线操作。",
+      "knowledge": "8086 CPU结构",
+      "confidence": "high"
+    },
+    {
+      "id": "q6",
+      "type": "single",
+      "stem": "执行压栈指令 PUSH AX 后，堆栈指针寄存器 SP 的变化是（ ）。",
+      "options": [
+        {
+          "key": "A",
+          "text": "SP 的内容不变"
+        },
+        {
+          "key": "B",
+          "text": "SP 的内容加 2"
+        },
+        {
+          "key": "C",
+          "text": "SP 的内容减 2"
+        },
+        {
+          "key": "D",
+          "text": "SP 的内容加 1"
+        }
+      ],
+      "answer": "C",
+      "analysis": "PUSH AX将2字节压入堆栈，SP减2（8086堆栈向下增长）。",
+      "knowledge": "8086堆栈操作",
+      "confidence": "high"
+    },
+    {
+      "id": "q7",
+      "type": "single",
+      "stem": "通过调用 ( )DOS 功能，可以实现多个字符输出到屏幕显示。",
+      "options": [
+        {
+          "key": "A",
+          "text": "1 号"
+        },
+        {
+          "key": "B",
+          "text": "2 号"
+        },
+        {
+          "key": "C",
+          "text": "9 号"
+        },
+        {
+          "key": "D",
+          "text": "10 号"
+        }
+      ],
+      "answer": "C",
+      "analysis": "DOS功能9号用于输出以'$'结尾的字符串。",
+      "knowledge": "DOS功能调用",
+      "confidence": "high"
+    },
+    {
+      "id": "q8",
+      "type": "single",
+      "stem": "执行 ADD AX, BX 后，若 AX=8000H，BX=8000H，则 OF 和 CF 分别为（ ）。",
+      "options": [
+        {
+          "key": "A",
+          "text": "OF=0, CF=0"
+        },
+        {
+          "key": "B",
+          "text": "OF=0, CF=1"
+        },
+        {
+          "key": "C",
+          "text": "OF=1, CF=0"
+        },
+        {
+          "key": "D",
+          "text": "OF=1, CF=1"
+        }
+      ],
+      "answer": "D",
+      "analysis": "8000H+8000H=10000H，结果超16位，CF=1；符号位由0变1再变0（溢出），OF=1。",
+      "knowledge": "标志位OF与CF判定",
+      "confidence": "high"
+    },
+    {
+      "id": "q9",
+      "type": "single",
+      "stem": "若要进行两个 32 位数相加，应选用的指令是（ ）。",
+      "options": [
+        {
+          "key": "A",
+          "text": "ADD"
+        },
+        {
+          "key": "B",
+          "text": "ADC"
+        },
+        {
+          "key": "C",
+          "text": "ADD 和 ADC 配合"
+        },
+        {
+          "key": "D",
+          "text": "INC"
+        }
+      ],
+      "answer": "C",
+      "analysis": "32位加法需先ADD低16位，再ADC带进位加高16位。",
+      "knowledge": "多精度算术运算",
+      "confidence": "high"
+    },
+    {
+      "id": "q10",
+      "type": "single",
+      "stem": "DRAM 需要定期刷新，这是因为（ ）。",
+      "options": [
+        {
+          "key": "A",
+          "text": "电容电荷会泄漏"
+        },
+        {
+          "key": "B",
+          "text": "晶体管会损坏"
+        },
+        {
+          "key": "C",
+          "text": "数据被读取后消失"
+        },
+        {
+          "key": "D",
+          "text": "以上都不对"
+        }
+      ],
+      "answer": "A",
+      "analysis": "DRAM靠电容存储电荷，电荷会自然泄漏，需定时刷新维持数据。",
+      "knowledge": "半导体存储器原理",
+      "confidence": "high"
+    },
+    {
+      "id": "q11",
+      "type": "single",
+      "stem": "I/O 端口独立编址方式的优点是（ ）。",
+      "options": [
+        {
+          "key": "A",
+          "text": "指令丰富"
+        },
+        {
+          "key": "B",
+          "text": "不占用存储器地址空间"
+        },
+        {
+          "key": "C",
+          "text": "可直接对 I/O 数据进行运算"
+        },
+        {
+          "key": "D",
+          "text": "地址空间大。"
+        }
+      ],
+      "answer": "B",
+      "analysis": "独立编址使I/O地址空间与内存地址空间分离，互不占用。",
+      "knowledge": "I/O编址方式",
+      "confidence": "high"
+    },
+    {
+      "id": "q12",
+      "type": "single",
+      "stem": "8086 移位指令中，可以实现乘法运算的是（ ）。",
+      "options": [
+        {
+          "key": "A",
+          "text": "SHL"
+        },
+        {
+          "key": "B",
+          "text": "ROR"
+        },
+        {
+          "key": "C",
+          "text": "SHR"
+        },
+        {
+          "key": "D",
+          "text": "ROL"
+        }
+      ],
+      "answer": "A",
+      "analysis": "SHL（逻辑左移）每左移1位相当于乘以2，可用于快速乘法。",
+      "knowledge": "移位指令功能",
+      "confidence": "high"
+    },
+    {
+      "id": "q13",
+      "type": "single",
+      "stem": "下列几种寄存器中，（ ）是动态读写存储器。",
+      "options": [
+        {
+          "key": "A",
+          "text": "DRAM"
+        },
+        {
+          "key": "B",
+          "text": "ROM"
+        },
+        {
+          "key": "C",
+          "text": "SRAM"
+        },
+        {
+          "key": "D",
+          "text": "RAM"
+        }
+      ],
+      "answer": "A",
+      "analysis": "DRAM是Dynamic RAM，靠电容存储、需刷新；选项D‘RAM’是统称，非具体类型；题干明确问‘是动态读写存储器’，唯一正确项为DRAM。",
+      "knowledge": "存储器分类",
+      "confidence": "high"
+    },
+    {
+      "id": "q14",
+      "type": "single",
+      "stem": "数据定义伪指令中的数据类型为（ ）时，数据为 16 位二进制数。",
+      "options": [
+        {
+          "key": "A",
+          "text": "DB"
+        },
+        {
+          "key": "B",
+          "text": "DW"
+        },
+        {
+          "key": "C",
+          "text": "DD"
+        },
+        {
+          "key": "D",
+          "text": "DQ"
+        }
+      ],
+      "answer": "B",
+      "analysis": "DW（Define Word）定义16位（2字节）数据。",
+      "knowledge": "汇编语言伪指令",
+      "confidence": "high"
+    },
+    {
+      "id": "q15",
+      "type": "single",
+      "stem": "十进制数 98 的压缩 BCD 码是（ ）。",
+      "options": [
+        {
+          "key": "A",
+          "text": "10011000B"
+        },
+        {
+          "key": "B",
+          "text": "10010001B"
+        },
+        {
+          "key": "C",
+          "text": "11010001B"
+        },
+        {
+          "key": "D",
+          "text": "10011100B"
+        }
+      ],
+      "answer": "A",
+      "analysis": "压缩BCD码每4位表示1位十进制，9→1001，8→1000，合为10011000B。",
+      "knowledge": "BCD编码",
+      "confidence": "high"
+    },
+    {
+      "id": "q16",
+      "type": "fill",
+      "stem": "8086 内存寻址空间最大为（ ）MB 。",
+      "options": [],
+      "answer": "1",
+      "analysis": "8086地址总线20位，2^20=1MB。",
+      "knowledge": "8086存储器寻址能力",
+      "confidence": "high"
+    },
+    {
+      "id": "q17",
+      "type": "fill",
+      "stem": "将 AL 寄存器的低 4 位取反，应使用的指令是 XOR AL, （ ）。",
+      "options": [],
+      "answer": "0FH",
+      "analysis": "0FH（00001111B）与AL按位异或，仅翻转低4位。",
+      "knowledge": "逻辑运算指令应用",
+      "confidence": "high"
+    },
+    {
+      "id": "q18",
+      "type": "fill",
+      "stem": "-23 的原码是（ ）、反码是（ ）、补码是（ ）。",
+      "options": [],
+      "answer": "10010111B,11101000B,11101001B",
+      "analysis": "-23原码：符号位1+23绝对值0010111→10010111B；反码=原码符号位不变其余取反→11101000B；补码=反码+1→11101001B。",
+      "knowledge": "有符号数编码",
+      "confidence": "high"
+    },
+    {
+      "id": "q19",
+      "type": "fill",
+      "stem": "内存按存储器性质分类通常分为（ ）和（ ）两类。",
+      "options": [],
+      "answer": "RAM,ROM",
+      "analysis": "按读写特性与断电保持性，主存基本分为RAM（易失）和ROM（非易失）。",
+      "knowledge": "存储器分类",
+      "confidence": "high"
+    },
+    {
+      "id": "q20",
+      "type": "fill",
+      "stem": "汇编语言源程序中，数据定义伪指令 DB、 DW、 DD 分别定义（ ）、字和双字类型数据。",
+      "options": [],
+      "answer": "字节",
+      "analysis": "DB（Define Byte）定义8位（1字节）数据。",
+      "knowledge": "汇编语言伪指令",
+      "confidence": "high"
+    },
+    {
+      "id": "q21",
+      "type": "fill",
+      "stem": "可编程定时/计数器 8253 含有（ ）个 16 位的定时/计数器，每个定时/计数器可以通过",
+      "options": [],
+      "answer": "3",
+      "analysis": "8253内部包含3个完全独立的16位计数通道。",
+      "knowledge": "8253芯片结构",
+      "confidence": "high"
+    },
+    {
+      "id": "q22",
+      "type": "judge",
+      "stem": "ADD 15H，BX 是合法指令。",
+      "options": [
+        {
+          "key": "A",
+          "text": "正确"
+        },
+        {
+          "key": "B",
+          "text": "错误"
+        }
+      ],
+      "answer": "B",
+      "analysis": "ADD 指令目的操作数必须是寄存器或存储器，源操作数不能同时为立即数和寄存器；ADD BX,15H 才合法。",
+      "knowledge": "",
+      "confidence": "high"
+    },
+    {
+      "id": "q23",
+      "type": "judge",
+      "stem": "8086CPU 总线接口部件有四个段寄存器：分别是 CS、DS、 ES、 SP。",
+      "options": [
+        {
+          "key": "A",
+          "text": "正确"
+        },
+        {
+          "key": "B",
+          "text": "错误"
+        }
+      ],
+      "answer": "B",
+      "analysis": "SP 是堆栈指针寄存器，属于通用寄存器，不是段寄存器；8086 段寄存器为 CS、DS、ES、SS。",
+      "knowledge": "",
+      "confidence": "high"
+    },
+    {
+      "id": "q24",
+      "type": "judge",
+      "stem": "8086 CPU 引脚中，AD15～AD0 是数据地址复用引脚。",
+      "options": [
+        {
+          "key": "A",
+          "text": "正确"
+        },
+        {
+          "key": "B",
+          "text": "错误"
+        }
+      ],
+      "answer": "A",
+      "analysis": "AD15～AD0 在 8086 中为地址/数据复用引脚，分时传送低16位地址和16位数据。",
+      "knowledge": "",
+      "confidence": "high"
+    },
+    {
+      "id": "q25",
+      "type": "judge",
+      "stem": "若定义数据组 BUFF DB 12H,34H, 56H，则(BUFF+2)单元存放的字节数据是 34H。",
+      "options": [
+        {
+          "key": "A",
+          "text": "正确"
+        },
+        {
+          "key": "B",
+          "text": "错误"
+        }
+      ],
+      "answer": "B",
+      "analysis": "BUFF 是字节数组首地址，BUFF+0=12H，BUFF+1=34H，BUFF+2=56H，故应为 56H。",
+      "knowledge": "",
+      "confidence": "high"
+    },
+    {
+      "id": "q26",
+      "type": "judge",
+      "stem": "8255A 的三种基本工作方式都能实现双向传输功能。",
+      "options": [
+        {
+          "key": "A",
+          "text": "正确"
+        },
+        {
+          "key": "B",
+          "text": "错误"
+        }
+      ],
+      "answer": "B",
+      "analysis": "仅方式 2（端口 A）支持双向传输；方式 0 和方式 1 均为单向（输入或输出）。",
+      "knowledge": "",
+      "confidence": "high"
+    },
+    {
+      "id": "q27",
+      "type": "judge",
+      "stem": "随机存储器 RAM 内的数据在断电后不会丢失。",
+      "options": [
+        {
+          "key": "A",
+          "text": "正确"
+        },
+        {
+          "key": "B",
+          "text": "错误"
+        }
+      ],
+      "answer": "B",
+      "analysis": "RAM 是易失性存储器，断电后数据全部丢失。",
+      "knowledge": "",
+      "confidence": "high"
+    },
+    {
+      "id": "q28",
+      "type": "judge",
+      "stem": "指令 MOV AX，[BX][DI]中源操作数的寻址方式是基址变址相对寻址。",
+      "options": [
+        {
+          "key": "A",
+          "text": "正确"
+        },
+        {
+          "key": "B",
+          "text": "错误"
+        }
+      ],
+      "answer": "B",
+      "analysis": "[BX][DI] 是基址加变址寻址（无位移量），相对寻址需含位移量如 [BX][DI]+disp。",
+      "knowledge": "",
+      "confidence": "high"
+    },
+    {
+      "id": "q29",
+      "type": "judge",
+      "stem": "中断请求触发器的作用就是产生中断请求信号给 CPU。",
+      "options": [
+        {
+          "key": "A",
+          "text": "正确"
+        },
+        {
+          "key": "B",
+          "text": "错误"
+        }
+      ],
+      "answer": "A",
+      "analysis": "中断请求触发器（如 8259A 的 IRR）用于锁存外设中断请求，形成有效 INTR 信号。",
+      "knowledge": "",
+      "confidence": "high"
+    },
+    {
+      "id": "q30",
+      "type": "judge",
+      "stem": "I/O 接口一般有三类信息：数据信息、状态信息和控制信息。",
+      "options": [
+        {
+          "key": "A",
+          "text": "正确"
+        },
+        {
+          "key": "B",
+          "text": "错误"
+        }
+      ],
+      "answer": "A",
+      "analysis": "标准 I/O 接口三大信息类型：数据（Data）、状态（Status）、控制（Control）。",
+      "knowledge": "",
+      "confidence": "high"
+    },
+    {
+      "id": "q31",
+      "type": "judge",
+      "stem": "执行指令 XOR AX,AX，可以使 AX 寄存器清零。",
+      "options": [
+        {
+          "key": "A",
+          "text": "正确"
+        },
+        {
+          "key": "B",
+          "text": "错误"
+        }
+      ],
+      "answer": "A",
+      "analysis": "XOR 相同操作数结果恒为 0，故 AX ← AX ⊕ AX = 0，是常用清零方法。",
+      "knowledge": "",
+      "confidence": "high"
+    },
+    {
+      "id": "q32",
+      "type": "judge",
+      "stem": "指令 MOV AX，10[BX]]中源操作数的寻址方式是寄存器寻址。",
+      "options": [
+        {
+          "key": "A",
+          "text": "正确"
+        },
+        {
+          "key": "B",
+          "text": "错误"
+        }
+      ],
+      "answer": "B",
+      "analysis": "10[BX] 是寄存器相对寻址（位移量+BX），非寄存器寻址（后者如 MOV AX,BX）。",
+      "knowledge": "",
+      "confidence": "high"
+    },
+    {
+      "id": "q33",
+      "type": "judge",
+      "stem": "MUL AL,BL 是非法指令。",
+      "options": [
+        {
+          "key": "A",
+          "text": "正确"
+        },
+        {
+          "key": "B",
+          "text": "错误"
+        }
+      ],
+      "answer": "A",
+      "analysis": "MUL 是单操作数指令，格式为 MUL src（src 只能是寄存器或内存），不支持两个寄存器。",
+      "knowledge": "",
+      "confidence": "high"
+    },
+    {
+      "id": "q34",
+      "type": "judge",
+      "stem": "运算结果为“0”时，ZF=0。",
+      "options": [
+        {
+          "key": "A",
+          "text": "正确"
+        },
+        {
+          "key": "B",
+          "text": "错误"
+        }
+      ],
+      "answer": "B",
+      "analysis": "零标志 ZF 在结果为 0 时置 1（ZF=1），表示“结果为零”。",
+      "knowledge": "",
+      "confidence": "high"
+    },
+    {
+      "id": "q35",
+      "type": "judge",
+      "stem": "数据组 BUFF DW 12H,34H, 6DUP(?)，它在内存中占用 8 字节的存储空间。",
+      "options": [
+        {
+          "key": "A",
+          "text": "正确"
+        },
+        {
+          "key": "B",
+          "text": "错误"
+        }
+      ],
+      "answer": "B",
+      "analysis": "DW 定义字（2 字节），12H 和 34H 占 4 字节，6DUP(?) 占 12 字节，共 16 字节。",
+      "knowledge": "",
+      "confidence": "high"
+    },
+    {
+      "id": "q36",
+      "type": "judge",
+      "stem": "8255A 的三个端口（A,B,C）均可以工作在方式 0 。",
+      "options": [
+        {
+          "key": "A",
+          "text": "正确"
+        },
+        {
+          "key": "B",
+          "text": "错误"
+        }
+      ],
+      "answer": "B",
+      "analysis": "方式 0 下，端口 A、B 可设为输入或输出，端口 C 可拆分为两个 4 位端口作控制/状态，但不可整体独立设为方式 0 的输入/输出端口。严格说端口 C 不具备完整方式 0 功能。",
+      "knowledge": "",
+      "confidence": "high"
+    },
+    {
+      "id": "q37",
+      "type": "short",
+      "stem": "至少列举标志寄存器中 5 种状态标志位，并简要说明其功能。",
+      "options": [],
+      "answer": "ZF：全零标志；CF：进位标志；SF：符号位；PF：奇偶校验位；OF：溢出标志",
+      "analysis": "需答出任意5个状态标志位名称及对应功能；ZF表结果为零，CF表无符号溢出，SF表结果最高位（符号位），PF表低8位中1的个数为偶数，OF表有符号溢出。",
+      "knowledge": "8086 标志寄存器",
+      "confidence": "high"
+    },
+    {
+      "id": "q38",
+      "type": "short",
+      "stem": "什么叫并行通信？什么叫串行通信？简述其特点和应用？",
+      "options": [],
+      "answer": "计算机与外部信息交换方式有两种，一种是并行通信，另一种是串行通信。\n并行通信时，8 位或 16 位数据同时传送。\n串行通信时，数据和控制信息是一位接一位串行地传送、传输线少、电路相对简单，成本低、适合远距离传输，主要缺点是速度相对较慢。",
+      "analysis": "并行通信要点：多位同时传、速度快、线多、距离短；串行通信要点：逐位传送、线少、成本低、抗干扰强、适合远距离。",
+      "knowledge": "数据通信方式",
+      "confidence": "high"
+    },
+    {
+      "id": "q39",
+      "type": "short",
+      "stem": "什么是多层次存储结构，它有什么作用？",
+      "options": [],
+      "answer": "多层次存储结构是把速度、容量、成本不同的多种存储器组合成分层体系，典型层级为寄存器、高速缓冲存储器(cache)、内存和外部存储器。\n它的核心作用是在速度、容量和成本三者之间取得平衡。",
+      "analysis": "需指出分层构成（寄存器→Cache→主存→辅存）及核心目标（速度/容量/成本三角平衡）。",
+      "knowledge": "存储系统层次结构",
+      "confidence": "high"
+    },
+    {
+      "id": "q40",
+      "type": "short",
+      "stem": "8086CPU 中的存储器为什么要采用分段结构？有什么好处？",
+      "options": [],
+      "answer": "8086 有 20 条地址线，可以寻址多达 2^20=1MB，但内部寄存器是 16 位的，以 16 位地址寄存器的内容寻址，只能寻址 2^16=64KB。\n8086 采用分段并附以地址偏移量的方法形成 20 位的物理地址。",
+      "analysis": "关键点：解决16位寄存器寻址1MB物理空间的矛盾；通过段基址×16＋偏移地址生成20位物理地址。",
+      "knowledge": "8086 存储器分段机制",
+      "confidence": "high"
+    },
+    {
+      "id": "q41",
+      "type": "short",
+      "stem": "8255A 有几种工作方式？简述各种方式的特点和应用。",
+      "options": [],
+      "answer": "8255A 有三种基本工作方式：方式 0（基本输入/输出）、方式 1（选通输入/输出）、方式 2（双向选通传输）。\n方式 0：无需联络信号，适用于简单同步数据传送；\n方式 1：需 STB、IBF、OBF 等联络信号，适用于查询或中断方式的外设接口；\n方式 2：仅端口 A 支持，可双向传输，需 5 条联络线，适用于双向数据交换场合（如键盘/显示复合接口）。",
+      "analysis": "需明确三种方式名称、适用端口（A/B/C）、是否支持双向、联络信号需求、典型应用场景。",
+      "knowledge": "8255A 工作方式",
+      "confidence": "high"
+    }
+  ],
+  "questionCount": 41,
+  "singleCount": 15,
+  "multipleCount": 0,
+  "judgeCount": 15,
+  "fillCount": 6,
+  "shortCount": 5,
+  "meta": {
+    "sourceFile": "专升本复习题（2026110）(1).pdf",
+    "model": "qwen-plus",
+    "generator": "TiMian v1.0.0 · AI"
+  }
+}
