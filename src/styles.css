@@ -3755,6 +3755,27 @@ svg {
   margin-top: 16px;
 }
 
+.lib-badge {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 600;
+  vertical-align: 1px;
+}
+
+.lib-badge.is-remote {
+  background: var(--green-soft);
+  color: var(--green);
+}
+
+.lib-badge.is-local {
+  background: var(--amber-soft);
+  color: #92400e;
+}
+
 .save-result {
   display: flex;
   gap: 10px;

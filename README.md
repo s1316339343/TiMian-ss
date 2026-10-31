@@ -44,6 +44,7 @@
 - 自动标出「AI 待确认」的题目（原文没有答案或模型不确定）
 - 保存为本地草稿、下载题库 JSON
 - 本地脚本 `npm run add-bank` 写入题库并更新 `index.json`；手动 `git push` 后由 GitHub Actions 部署
+- 题库管理：查看线上题库和本机草稿；本机草稿可直接删除，线上题库生成 `remove-bank` 命令
 
 **工程**
 
@@ -391,6 +392,25 @@ Key 会存在管理员浏览器的 `localStorage` 中，因此建议：
 
 建议用 `add-bank` 脚本，避免手写 `index.json` 时漏掉 `fillCount`、`shortCount` 等字段。
 
+### 删除题库
+
+后台「题库管理」会列出线上题库和本机草稿：
+
+- **本机草稿**：点垃圾桶 → 直接删除当前浏览器里的副本，不影响仓库。
+- **线上题库**：点垃圾桶 → 复制命令，在项目根目录执行：
+
+  ```bash
+  npm run remove-bank -- <题库 id>
+  # 输入 yes 确认；脚本会删除 JSON 并更新 index.json
+
+  git add -A public/data/banks
+  git commit -m "remove bank: 题库名称"
+  git push
+  ```
+
+`remove-bank` 会先显示题库标题和文件路径，输入 `yes` 才真正删除；推送后 GitHub Actions
+自动重建，线上首页就不再显示这套题库。
+
 ### 本地草稿
 
 「保存为本地草稿」只写入当前浏览器、当前域名的 `localStorage`，用于临时保存解析结果。
@@ -531,6 +551,7 @@ Key 会存在管理员浏览器的 `localStorage` 中，因此建议：
 │  └─ data/banks/                 # 静态题库：index.json + 每套题库一个 JSON
 ├─ scripts/set-admin-password.mjs # 重新生成管理员密码哈希
 ├─ scripts/add-bank.mjs           # 把下载的题库 JSON 写入 public/data/banks 并更新 index.json
+├─ scripts/remove-bank.mjs        # 按 id 删除线上题库 JSON 并更新 index.json
 ├─ src/
 │  ├─ pages/                      # 首页 / 登录 / 答题 / 管理后台
 │  ├─ services/                   # AI、PDF、题库仓库、登录

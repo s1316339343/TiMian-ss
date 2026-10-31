@@ -5,14 +5,15 @@ import {
   BANK_EMOJIS,
   PAGE_SIZE_LIMITS,
 } from '../config';
-import type { AIConfig, Bank, Question, QuestionType } from '../types';
+import type { AIConfig, Bank, BankSummary, Question, QuestionType } from '../types';
 import { AIError, parseQuestionsWithAI, testAIConfig, validateAIConfig } from '../services/ai';
 import { isAdmin, logout } from '../services/auth';
 import {
   bankFilePayload,
   countByType,
   getLocalBank,
-  listLocalBanks,
+  listBankSummaries,
+  loadBankById,
   nowISO,
   removeLocalBank,
   saveLocalBank,
@@ -21,7 +22,7 @@ import { PdfError, extractPdfText } from '../services/pdf';
 import { loadAIConfig, saveAIConfig } from '../services/settings';
 import { siteHeader } from '../ui/layout';
 import { uid } from '../utils/crypto';
-import { confirmDialog, downloadText, esc, icon, qs, qsa, toast } from '../utils/dom';
+import { confirmDialog, copyText, downloadText, esc, icon, qs, qsa, toast } from '../utils/dom';
 import {
   clamp,
   formatDate,
@@ -412,7 +413,7 @@ export function renderAdmin(root: HTMLElement): () => void {
     }
     state.dirty = false;
     setStatus('#save-status', `已保存到本地草稿 · ${formatDateTime(nowISO())}`, 'ok');
-    renderDrafts(root, state);
+    void renderLibrary(root, state);
     toast('已保存到本地草稿（仅当前浏览器可见）', 'success');
   };
 
@@ -626,26 +627,56 @@ export function renderAdmin(root: HTMLElement): () => void {
         return;
       }
 
-      case 'delete-draft': {
-        const id = actionEl.dataset.id ?? '';
-        const confirmed = await confirmDialog({
-          title: '删除本地草稿？',
-          message: '只会删除当前浏览器里的副本，已经提交到仓库的题库不受影响。',
-          confirmText: '删除',
-          danger: true,
-        });
-        if (!confirmed) return;
-        removeLocalBank(id);
-        renderDrafts(root, state);
-        toast('已删除本地草稿', 'success');
+      case 'download-library': {
+        const bank = await loadBankById(actionEl.dataset.id ?? '');
+        if (!bank) {
+          toast('题库不存在，或线上题库加载失败', 'error');
+          return;
+        }
+        downloadText(`${bank.id}.json`, bankFilePayload(bank));
+        toast('已下载题库 JSON', 'success');
         return;
       }
 
-      case 'download-draft': {
-        const bank = getLocalBank(actionEl.dataset.id ?? '');
-        if (!bank) return;
-        downloadText(`${bank.id}.json`, bankFilePayload(bank));
-        toast('已下载题库 JSON', 'success');
+      case 'delete-library': {
+        const id = actionEl.dataset.id ?? '';
+        const title = actionEl.dataset.title || id;
+        const isLocal = actionEl.dataset.local === '1';
+        const isRemote = actionEl.dataset.remote === '1';
+
+        if (isLocal) {
+          const confirmed = await confirmDialog({
+            title: '删除本机草稿？',
+            message: isRemote
+              ? '只会删除当前浏览器里的草稿；线上版本仍然存在，需要再执行 remove-bank 命令删除。'
+              : '只会删除当前浏览器里的副本，不影响仓库里的其他题库。',
+            confirmText: '删除草稿',
+            danger: true,
+          });
+          if (!confirmed) return;
+          removeLocalBank(id);
+          await renderLibrary(root, state);
+          toast(isRemote ? '已删除本机草稿；线上版本请用 remove-bank 删除' : '已删除本地草稿', 'success');
+          return;
+        }
+
+        if (!isRemote) return;
+        const commitTitle = title.replace(/"/g, "'");
+        const command = `npm run remove-bank -- ${id}\n\ngit add -A public/data/banks\ngit commit -m "remove bank: ${commitTitle}"\ngit push`;
+        const confirmed = await confirmDialog({
+          title: '删除线上题库？',
+          message: `这是静态站点，网页不能直接删除仓库文件。点「复制命令」后，在项目根目录执行：\n\n${command}`,
+          confirmText: '复制命令',
+          cancelText: '关闭',
+          danger: true,
+        });
+        if (!confirmed) return;
+        const copied = await copyText(command);
+        toast(
+          copied ? '删除命令已复制，请到项目根目录执行' : '复制失败，请手动执行 remove-bank 命令',
+          copied ? 'success' : 'error',
+          4600,
+        );
         return;
       }
 
@@ -820,7 +851,7 @@ export function renderAdmin(root: HTMLElement): () => void {
 
   renderPickers();
   renderPreview(root, state);
-  renderDrafts(root, state);
+  void renderLibrary(root, state);
   updateParseHint(root, state);
   updateParseButton(root, state, false);
   refreshStats(root, state);
@@ -1123,15 +1154,15 @@ git push</pre>
           </div>
         </section>
 
-        <section class="panel" id="drafts-panel">
+        <section class="panel" id="library-panel">
           <div class="panel-head">
             <span class="step-badge is-alt">${icon('layers', 16)}</span>
             <div class="panel-title">
-              <h2>本地草稿</h2>
-              <p>只存在于当前浏览器；要上线请下载 JSON 并按上面的手动发布步骤提交</p>
+              <h2>题库管理</h2>
+              <p>线上题库 + 本机草稿；删除线上题库需本地执行 remove-bank 后 push</p>
             </div>
           </div>
-          <div id="drafts-list"></div>
+          <div id="library-list"><p class="empty-hint">正在加载题库…</p></div>
         </section>
       </main>
     </div>`;
@@ -1613,33 +1644,58 @@ function handleParseError(root: HTMLElement, error: unknown): void {
   toast('解析失败，请查看提示', 'error', 4200);
 }
 
-function renderDrafts(root: HTMLElement, state: AdminState): void {
-  const container = qs<HTMLElement>('#drafts-list', root);
-  if (!container) return;
-  const records = listLocalBanks();
-  if (!records.length) {
-    container.innerHTML =
-      '<p class="empty-hint">还没有本地草稿。解析并保存后，可以在这里继续编辑。</p>';
-    return;
-  }
+let libraryRequest = 0;
 
-  container.innerHTML = records
-    .map(
-      (record) => `
-      <div class="draft-row">
-        <span class="draft-emoji">${esc(record.bank.emoji || '📘')}</span>
-        <div class="draft-main">
-          <b>${esc(record.bank.title || '未命名题库')}</b>
-          <span>${record.bank.questions.length} 题 · 保存于 ${formatDateTime(record.savedAt)}</span>
-        </div>
-        <div class="draft-actions">
-          <button type="button" class="btn btn-ghost btn-sm" data-act="load-draft" data-id="${esc(record.bank.id)}">继续编辑</button>
-          <button type="button" class="btn btn-ghost btn-sm" data-act="download-draft" data-id="${esc(record.bank.id)}">下载</button>
-          <button type="button" class="icon-btn icon-btn-sm" data-act="delete-draft" data-id="${esc(record.bank.id)}" aria-label="删除草稿">${icon('trash', 15)}</button>
-        </div>
-      </div>`,
-    )
-    .join('');
+async function renderLibrary(root: HTMLElement, state: AdminState): Promise<void> {
+  const container = qs<HTMLElement>('#library-list', root);
+  if (!container) return;
+  const request = ++libraryRequest;
+
+  try {
+    const { banks } = await listBankSummaries();
+    if (request !== libraryRequest || !container.isConnected) return;
+    if (!banks.length) {
+      container.innerHTML =
+        '<p class="empty-hint">还没有题库。解析并保存后，可以在这里继续编辑；线上题库会从 public/data/banks/index.json 加载。</p>';
+      return;
+    }
+    container.innerHTML = banks.map(libraryRow).join('');
+  } catch {
+    if (request !== libraryRequest || !container.isConnected) return;
+    container.innerHTML =
+      '<p class="empty-hint">题库列表加载失败，请刷新页面重试。</p>';
+  }
   void state;
+}
+
+function libraryRow(bank: BankSummary): string {
+  const title = bank.title || '未命名题库';
+  const badges = [
+    bank.remote ? '<em class="lib-badge is-remote">线上</em>' : '',
+    bank.local ? '<em class="lib-badge is-local">本机草稿</em>' : '',
+  ].join('');
+  const counts = `${formatNumber(bank.questionCount)} 题 · 单选 ${bank.singleCount}${
+    bank.multipleCount ? ` · 多选 ${bank.multipleCount}` : ''
+  } · 判断 ${bank.judgeCount}${bank.fillCount ? ` · 填空 ${bank.fillCount}` : ''}${
+    bank.shortCount ? ` · 简答 ${bank.shortCount}` : ''
+  }`;
+
+  return `
+    <div class="draft-row">
+      <span class="draft-emoji">${esc(bank.emoji || '📘')}</span>
+      <div class="draft-main">
+        <b>${esc(title)} ${badges}</b>
+        <span>${counts} · 更新于 ${formatDate(bank.updatedAt)}</span>
+      </div>
+      <div class="draft-actions">
+        ${
+          bank.local
+            ? `<button type="button" class="btn btn-ghost btn-sm" data-act="load-draft" data-id="${esc(bank.id)}">继续编辑</button>`
+            : ''
+        }
+        <button type="button" class="btn btn-ghost btn-sm" data-act="download-library" data-id="${esc(bank.id)}">下载 JSON</button>
+        <button type="button" class="icon-btn icon-btn-sm" data-act="delete-library" data-id="${esc(bank.id)}" data-title="${esc(title)}" data-local="${bank.local ? '1' : '0'}" data-remote="${bank.remote ? '1' : '0'}" aria-label="删除题库">${icon('trash', 15)}</button>
+      </div>
+    </div>`;
 }
 

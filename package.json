@@ -11,7 +11,8 @@
     "preview": "vite preview --port 4173 --strictPort",
     "typecheck": "tsc --noEmit",
     "hash-password": "node scripts/set-admin-password.mjs",
-    "add-bank": "node scripts/add-bank.mjs"
+    "add-bank": "node scripts/add-bank.mjs",
+    "remove-bank": "node scripts/remove-bank.mjs"
   },
   "devDependencies": {
     "typescript": "^7.0.2",
