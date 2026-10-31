@@ -3707,6 +3707,54 @@ svg {
   flex: none;
 }
 
+.save-note code,
+.manual-publish code {
+  padding: 1px 5px;
+  border-radius: 5px;
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-size: 11px;
+}
+
+.manual-publish ol {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding-left: 20px;
+  color: var(--text-2);
+  font-size: 12.5px;
+  line-height: 1.8;
+}
+
+.manual-publish li::marker {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.manual-publish pre {
+  margin: 8px 0 0;
+  padding: 10px 12px;
+  border: 1px solid #1e293b;
+  border-radius: 10px;
+  background: #0f172a;
+  color: #e2e8f0;
+  font-size: 11.5px;
+  line-height: 1.8;
+  overflow-x: auto;
+}
+
+.manual-publish pre code {
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font-size: inherit;
+}
+
+.manual-publish .warn-block {
+  margin-top: 16px;
+}
+
 .save-result {
   display: flex;
   gap: 10px;

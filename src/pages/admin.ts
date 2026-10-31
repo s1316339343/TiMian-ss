@@ -5,30 +5,20 @@ import {
   BANK_EMOJIS,
   PAGE_SIZE_LIMITS,
 } from '../config';
-import type { AIConfig, Bank, PublishConfig, Question, QuestionType } from '../types';
+import type { AIConfig, Bank, Question, QuestionType } from '../types';
 import { AIError, parseQuestionsWithAI, testAIConfig, validateAIConfig } from '../services/ai';
 import { isAdmin, logout } from '../services/auth';
 import {
   bankFilePayload,
-  buildMergedIndex,
   countByType,
   getLocalBank,
   listLocalBanks,
   nowISO,
   removeLocalBank,
   saveLocalBank,
-  toMeta,
 } from '../services/bankRepo';
-import { testGitHubConnection } from '../services/github';
 import { PdfError, extractPdfText } from '../services/pdf';
-import { publishBankToGitHub } from '../services/publish';
-import {
-  isPublishConfigured,
-  loadAIConfig,
-  loadPublishConfig,
-  saveAIConfig,
-  savePublishConfig,
-} from '../services/settings';
+import { loadAIConfig, saveAIConfig } from '../services/settings';
 import { siteHeader } from '../ui/layout';
 import { uid } from '../utils/crypto';
 import { confirmDialog, downloadText, esc, icon, qs, qsa, toast } from '../utils/dom';
@@ -63,10 +53,8 @@ interface AdminState {
   sourceFile: string;
   parsing: boolean;
   abort: AbortController | null;
-  publishing: boolean;
   dirty: boolean;
   aiConfig: AIConfig;
-  publishConfig: PublishConfig;
 }
 
 const AI_HINTS: Record<string, string> = {
@@ -103,10 +91,8 @@ export function renderAdmin(root: HTMLElement): () => void {
     sourceFile: '',
     parsing: false,
     abort: null,
-    publishing: false,
     dirty: false,
     aiConfig: loadAIConfig(),
-    publishConfig: loadPublishConfig(),
   };
 
   document.title = `管理后台 · ${APP.name}`;
@@ -365,9 +351,6 @@ export function renderAdmin(root: HTMLElement): () => void {
         cancel: false,
       });
 
-      const resultBox = qs<HTMLElement>('#save-result', root);
-      if (resultBox) resultBox.hidden = true;
-
       showPanels();
       syncBankForm();
       renderReview();
@@ -401,7 +384,7 @@ export function renderAdmin(root: HTMLElement): () => void {
   const handleSaveLocal = (): void => {
     if (!ensureValid()) return;
     const bank = buildBank(state);
-    if (!saveLocalBank(bank, false)) {
+    if (!saveLocalBank(bank)) {
       toast('保存失败：浏览器存储空间不足或被禁用', 'error');
       return;
     }
@@ -411,61 +394,11 @@ export function renderAdmin(root: HTMLElement): () => void {
     toast('已保存到本地草稿（仅当前浏览器可见）', 'success');
   };
 
-  const handlePublish = async (): Promise<void> => {
-    if (state.publishing) return;
-    if (!ensureValid()) return;
-
-    if (!isPublishConfigured(state.publishConfig)) {
-      toast('请先在「发布设置」中填写仓库和 Token', 'error');
-      const panel = qs<HTMLDetailsElement>('#publish-panel', root);
-      if (panel) {
-        panel.open = true;
-        panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-      return;
-    }
-
-    const confirmed = await confirmDialog({
-      title: '发布到 GitHub Pages？',
-      message:
-        '将把题库 JSON 和更新后的 index.json 提交到仓库，GitHub Actions 会自动重新构建站点（约 1–2 分钟）。',
-      confirmText: '发布',
-    });
-    if (!confirmed) return;
-
-    state.publishing = true;
-    updatePublishButton(root, state, true);
-    const bank = buildBank(state);
-
-    try {
-      setStatus('#save-status', '正在提交到 GitHub…', 'idle');
-      const result = await publishBankToGitHub(bank, state.publishConfig, (progress) => {
-        setStatus('#save-status', progress.message, 'idle');
-      });
-
-      saveLocalBank(bank, true);
-      state.dirty = false;
-      setStatus('#save-status', '已提交，等待 GitHub Pages 构建生效', 'ok');
-      showPublishResult(root, result);
-      renderDrafts(root, state);
-      toast('发布成功，Pages 约 1–2 分钟后生效', 'success', 4200);
-      setStep(3);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : '发布失败';
-      setStatus('#save-status', message, 'error');
-      toast('发布失败，请查看提示', 'error', 4400);
-    } finally {
-      state.publishing = false;
-      updatePublishButton(root, state, false);
-      refreshStats(root, state);
-    }
-  };
-
   const handleDownloadBank = (): void => {
     if (!ensureValid()) return;
     const bank = buildBank(state);
     downloadText(`${bank.id}.json`, bankFilePayload(bank));
-    toast('已下载题库 JSON；如需手动发布，请一并更新 index.json', 'info', 4200);
+    toast('已下载题库 JSON，请用 npm run add-bank 写入项目后手动 push', 'info', 4600);
   };
 
   /* ------------------------------------------------------------ 事件 */
@@ -525,9 +458,8 @@ export function renderAdmin(root: HTMLElement): () => void {
         updateParseHint(root, state);
         return;
 
-      case 'toggle-key':
-      case 'toggle-token': {
-        const input = qs<HTMLInputElement>(action === 'toggle-key' ? '#ai-key' : '#gh-token', root);
+      case 'toggle-key': {
+        const input = qs<HTMLInputElement>('#ai-key', root);
         if (!input) return;
         const visible = input.type === 'password';
         input.type = visible ? 'text' : 'password';
@@ -566,48 +498,6 @@ export function renderAdmin(root: HTMLElement): () => void {
         const result = await testAIConfig(config);
         setStatus('#ai-status', result.message, result.ok ? 'ok' : 'error');
         button.disabled = false;
-        return;
-      }
-
-      case 'save-publish': {
-        const config = readPublishConfig(root);
-        if (!config.owner || !config.repo) {
-          setStatus('#gh-status', '请填写仓库所有者和仓库名', 'error');
-          return;
-        }
-        if (!savePublishConfig(config)) {
-          setStatus('#gh-status', '保存失败，浏览器可能禁用了本地存储', 'error');
-          return;
-        }
-        state.publishConfig = config;
-        setStatus('#gh-status', '已保存发布设置', 'ok');
-        toast('发布设置已保存', 'success');
-        return;
-      }
-
-      case 'test-publish': {
-        const config = readPublishConfig(root);
-        if (!config.owner || !config.repo || !config.token) {
-          setStatus('#gh-status', '请先填写仓库信息和 Token', 'error');
-          return;
-        }
-        const button = actionEl as HTMLButtonElement;
-        button.disabled = true;
-        setStatus('#gh-status', '正在连接 GitHub…', 'idle');
-        try {
-          const info = await testGitHubConnection(config);
-          setStatus(
-            '#gh-status',
-            `已连接 ${info.fullName}（默认分支 ${info.defaultBranch}）· ${
-              info.canPush ? '有写入权限' : '只读权限，无法发布'
-            }`,
-            info.canPush ? 'ok' : 'error',
-          );
-        } catch (error) {
-          setStatus('#gh-status', error instanceof Error ? error.message : '连接失败', 'error');
-        } finally {
-          button.disabled = false;
-        }
         return;
       }
 
@@ -680,22 +570,9 @@ export function renderAdmin(root: HTMLElement): () => void {
         handleSaveLocal();
         return;
 
-      case 'publish':
-        await handlePublish();
-        return;
-
       case 'download-bank':
         handleDownloadBank();
         return;
-
-      case 'download-index': {
-        if (!ensureValid()) return;
-        const bank = buildBank(state);
-        const index = await buildMergedIndex(toMeta(bank));
-        downloadText('index.json', index);
-        toast('已下载 index.json', 'success');
-        return;
-      }
 
       case 'load-draft': {
         const bank = getLocalBank(actionEl.dataset.id ?? '');
@@ -731,7 +608,7 @@ export function renderAdmin(root: HTMLElement): () => void {
         const id = actionEl.dataset.id ?? '';
         const confirmed = await confirmDialog({
           title: '删除本地草稿？',
-          message: '只会删除当前浏览器里的副本，已发布到 GitHub 的题库不受影响。',
+          message: '只会删除当前浏览器里的副本，已经提交到仓库的题库不受影响。',
           confirmText: '删除',
           danger: true,
         });
@@ -911,11 +788,6 @@ export function renderAdmin(root: HTMLElement): () => void {
   (qs<HTMLInputElement>('#ai-model', root)!).value = state.aiConfig.model;
   (qs<HTMLInputElement>('#ai-key', root)!).value = state.aiConfig.apiKey;
   (qs<HTMLInputElement>('#ai-json', root)!).checked = state.aiConfig.jsonMode;
-  (qs<HTMLInputElement>('#gh-owner', root)!).value = state.publishConfig.owner;
-  (qs<HTMLInputElement>('#gh-repo', root)!).value = state.publishConfig.repo;
-  (qs<HTMLInputElement>('#gh-branch', root)!).value = state.publishConfig.branch;
-  (qs<HTMLInputElement>('#gh-dir', root)!).value = state.publishConfig.dir;
-  (qs<HTMLInputElement>('#gh-token', root)!).value = state.publishConfig.token;
 
   const activePreset =
     AI_PRESETS.find((preset) => preset.baseUrl && preset.baseUrl === state.aiConfig.baseUrl)?.id ??
@@ -992,7 +864,7 @@ function adminShell(): string {
             <em></em>
             <div class="admin-step" data-step="2"><i>2</i><span>校对题目</span></div>
             <em></em>
-            <div class="admin-step" data-step="3"><i>3</i><span>保存与发布</span></div>
+            <div class="admin-step" data-step="3"><i>3</i><span>导出与发布</span></div>
           </div>
         </div>
 
@@ -1192,84 +1064,49 @@ function adminShell(): string {
           <div class="save-bar">
             <div class="save-actions">
               <button type="button" class="btn btn-outline" data-act="save-local">${icon('download', 16)} 保存为本地草稿</button>
-              <button type="button" class="btn btn-primary" data-act="publish">${icon('github', 16)} 发布到 GitHub Pages</button>
-              <button type="button" class="btn btn-ghost" data-act="download-bank">${icon('file', 16)} 下载题库 JSON</button>
-              <button type="button" class="btn btn-ghost" data-act="download-index">${icon('layers', 16)} 下载 index.json</button>
+              <button type="button" class="btn btn-primary" data-act="download-bank">${icon('file', 16)} 下载题库 JSON</button>
             </div>
             <span class="status-text" id="save-status"></span>
           </div>
           <p class="save-note">
-            ${icon('info', 15)} 发布 = 通过 GitHub API 把题库 JSON 与索引写入仓库，触发 Pages 重新构建（约 1–2 分钟生效）。未配置 Token 时，可以下载 JSON 手动提交。
+            ${icon('info', 15)} 下载题库 JSON 后，在项目根目录运行 <code>npm run add-bank -- "文件路径"</code>，再手动 <code>git push</code>；GitHub Actions 会自动构建站点。
           </p>
-          <div class="save-result" id="save-result" hidden></div>
         </section>
 
-        <details class="panel panel-collapse" id="publish-panel">
-          <summary>
-            <span class="step-badge is-alt">${icon('github', 16)}</span>
-            <span class="panel-title">
-              <b>发布设置</b>
-              <small>GitHub 仓库与 Token</small>
-            </span>
-            <span class="collapse-hint">展开 / 收起</span>
-          </summary>
-          <div class="collapse-body">
-            <div class="field-row">
-              <label class="field">
-                <span class="field-label">仓库所有者 owner</span>
-                <input id="gh-owner" class="input" placeholder="your-name" spellcheck="false" autocomplete="off" />
-              </label>
-              <label class="field">
-                <span class="field-label">仓库名 repo</span>
-                <input id="gh-repo" class="input" placeholder="TiMian-ss" spellcheck="false" autocomplete="off" />
-              </label>
+        <section class="panel" id="manual-publish">
+          <div class="panel-head">
+            <span class="step-badge is-alt">${icon('file', 16)}</span>
+            <div class="panel-title">
+              <h2>手动发布</h2>
+              <p>下载 JSON → 本地写入 → 手动 git push</p>
             </div>
-            <div class="field-row">
-              <label class="field">
-                <span class="field-label">分支</span>
-                <input id="gh-branch" class="input" placeholder="main" spellcheck="false" autocomplete="off" />
-              </label>
-              <label class="field">
-                <span class="field-label">题库目录</span>
-                <input id="gh-dir" class="input" placeholder="public/data/banks" spellcheck="false" autocomplete="off" />
-              </label>
-            </div>
-            <label class="field">
-              <span class="field-label">Fine-grained Token</span>
-              <div class="input-wrap">
-                ${icon('key', 18)}
-                <input id="gh-token" type="password" class="input" placeholder="github_pat_..." autocomplete="off" spellcheck="false" />
-                <button type="button" class="input-action" data-act="toggle-token" aria-label="显示 Token">${icon('eye', 18)}</button>
-              </div>
-            </label>
-            <div class="panel-actions">
-              <button type="button" class="btn btn-primary btn-sm" data-act="save-publish">保存</button>
-              <button type="button" class="btn btn-outline btn-sm" data-act="test-publish">测试连接</button>
-              <span class="status-text" id="gh-status"></span>
-            </div>
-            <details class="inline-details">
-              <summary>如何创建 Token？</summary>
-              <div>
-                <ol>
-                  <li>GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens；</li>
-                  <li>Repository access 只勾选本站仓库；</li>
-                  <li>Permissions → Contents 选择 <b>Read and write</b>；</li>
-                  <li>生成后粘贴到上面，点「测试连接」确认有写入权限。</li>
-                </ol>
-              </div>
-            </details>
-            <p class="warn-block">
-              ${icon('shield', 15)} Token 会明文保存在当前浏览器的 localStorage 中。请使用仅限该仓库、仅有 Contents 读写权限的 Token，并定期轮换；不要在公共电脑上保存。
-            </p>
           </div>
-        </details>
+          <div class="manual-publish">
+            <ol>
+              <li>点上方 <b>下载题库 JSON</b>，保存到电脑。</li>
+              <li>
+                在项目根目录执行
+                <code>npm run add-bank -- "下载的 JSON 路径"</code>
+                ，脚本会写入 <code>public/data/banks/</code> 并更新 <code>index.json</code>。
+              </li>
+              <li>
+                提交并推送：
+                <pre>git add public/data/banks
+git commit -m "add question bank"
+git push</pre>
+              </li>
+              <li>GitHub Actions 会自动重新构建，约 1–2 分钟后刷新线上首页。</li>
+            </ol>
+            <p class="warn-block">${icon('info', 15)} 项目不再在网页中保存 GitHub Token；所有题库更新都由你在本地 push 触发。</p>
+          </div>
+        </section>
 
         <section class="panel" id="drafts-panel">
           <div class="panel-head">
             <span class="step-badge is-alt">${icon('layers', 16)}</span>
             <div class="panel-title">
               <h2>本地草稿</h2>
-              <p>只存在于当前浏览器，可以继续编辑或删除</p>
+              <p>只存在于当前浏览器；要上线请下载 JSON 并按上面的手动发布步骤提交</p>
             </div>
           </div>
           <div id="drafts-list"></div>
@@ -1577,16 +1414,6 @@ function readAIConfig(root: HTMLElement): AIConfig {
   };
 }
 
-function readPublishConfig(root: HTMLElement): PublishConfig {
-  return {
-    owner: (qs<HTMLInputElement>('#gh-owner', root)?.value ?? '').trim(),
-    repo: (qs<HTMLInputElement>('#gh-repo', root)?.value ?? '').trim(),
-    branch: (qs<HTMLInputElement>('#gh-branch', root)?.value ?? '').trim() || 'main',
-    token: (qs<HTMLInputElement>('#gh-token', root)?.value ?? '').trim(),
-    dir: (qs<HTMLInputElement>('#gh-dir', root)?.value ?? '').trim() || 'public/data/banks',
-  };
-}
-
 function renderPreview(root: HTMLElement, state: AdminState): void {
   const container = qs<HTMLElement>('#bank-preview', root);
   if (!container) return;
@@ -1660,9 +1487,11 @@ function refreshStats(root: HTMLElement, state: AdminState): void {
       : '';
   }
 
-  qsa<HTMLButtonElement>('[data-act="save-local"], [data-act="publish"]', root).forEach((button) => {
-    button.disabled = issues.length > 0 || state.publishing;
-  });
+  qsa<HTMLButtonElement>('[data-act="save-local"], [data-act="download-bank"]', root).forEach(
+    (button) => {
+      button.disabled = issues.length > 0;
+    },
+  );
 
   renderPreview(root, state);
 }
@@ -1694,16 +1523,6 @@ function updateParseHint(root: HTMLElement, state: AdminState): void {
   }
   hint.textContent = `将调用 ${state.aiConfig.model || 'AI 模型'} 解析，题目较多时请耐心等待`;
   hint.dataset.tone = 'idle';
-}
-
-function updatePublishButton(root: HTMLElement, state: AdminState, publishing: boolean): void {
-  const button = qs<HTMLButtonElement>('[data-act="publish"]', root);
-  if (!button) return;
-  button.disabled = publishing;
-  button.innerHTML = publishing
-    ? '<span class="spinner"></span> 正在发布…'
-    : `${icon('github', 16)} 发布到 GitHub Pages`;
-  void state;
 }
 
 function showStatus(
@@ -1789,9 +1608,7 @@ function renderDrafts(root: HTMLElement, state: AdminState): void {
         <span class="draft-emoji">${esc(record.bank.emoji || '📘')}</span>
         <div class="draft-main">
           <b>${esc(record.bank.title || '未命名题库')}</b>
-          <span>${record.bank.questions.length} 题 · 保存于 ${formatDateTime(record.savedAt)}${
-            record.pendingPublish ? ' · <em>已提交，待 Pages 生效</em>' : ''
-          }</span>
+          <span>${record.bank.questions.length} 题 · 保存于 ${formatDateTime(record.savedAt)}</span>
         </div>
         <div class="draft-actions">
           <button type="button" class="btn btn-ghost btn-sm" data-act="load-draft" data-id="${esc(record.bank.id)}">继续编辑</button>
@@ -1804,23 +1621,3 @@ function renderDrafts(root: HTMLElement, state: AdminState): void {
   void state;
 }
 
-function showPublishResult(
-  root: HTMLElement,
-  result: { bankPath: string; indexPath: string; commitUrl: string },
-): void {
-  const box = qs<HTMLElement>('#save-result', root);
-  if (!box) return;
-  box.hidden = false;
-  box.innerHTML = `
-    <span class="status-dot is-ok"></span>
-    <div>
-      <b>已提交到 GitHub</b>
-      <p>题库文件：<code>${esc(result.bankPath)}</code> · 索引：<code>${esc(result.indexPath)}</code></p>
-      <p>GitHub Pages 会在 1–2 分钟内重新构建。构建完成后刷新首页，就能看到这套题库。</p>
-      ${
-        result.commitUrl
-          ? `<a href="${esc(result.commitUrl)}" target="_blank" rel="noopener noreferrer">查看提交记录 ${icon('external', 14)}</a>`
-          : ''
-      }
-    </div>`;
-}

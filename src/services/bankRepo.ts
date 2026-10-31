@@ -232,7 +232,7 @@ export function getLocalBank(id: string): Bank | null {
   return record ? record.bank : null;
 }
 
-export function saveLocalBank(bank: Bank, pendingPublish = false): boolean {
+export function saveLocalBank(bank: Bank): boolean {
   const records = readLocalRecords();
   const counts = countByType(bank.questions);
   const stored: Bank = {
@@ -242,7 +242,7 @@ export function saveLocalBank(bank: Bank, pendingPublish = false): boolean {
     updatedAt: bank.updatedAt || nowISO(),
   };
   const next: LocalBankRecord[] = [
-    { bank: stored, savedAt: nowISO(), pendingPublish },
+    { bank: stored, savedAt: nowISO() },
     ...records.filter((record) => record.bank.id !== bank.id),
   ];
   return writeLocalRecords(next);
@@ -250,17 +250,6 @@ export function saveLocalBank(bank: Bank, pendingPublish = false): boolean {
 
 export function removeLocalBank(id: string): boolean {
   return writeLocalRecords(readLocalRecords().filter((record) => record.bank.id !== id));
-}
-
-export function markLocalPending(id: string): boolean {
-  const records = readLocalRecords();
-  let found = false;
-  const next = records.map((record) => {
-    if (record.bank.id !== id) return record;
-    found = true;
-    return { ...record, pendingPublish: true };
-  });
-  return found ? writeLocalRecords(next) : false;
 }
 
 /* -------------------------------------------------------------- 远程数据 */
@@ -332,7 +321,6 @@ export async function listBankSummaries(): Promise<BankListResult> {
       ...toMeta(record.bank),
       local: true,
       remote: Boolean(remote),
-      pendingPublish: record.pendingPublish,
     });
     keptRecords.push(record);
   }
@@ -374,16 +362,4 @@ export function bankFilePayload(bank: Bank): string {
     null,
     2,
   );
-}
-
-export async function buildMergedIndex(meta: BankMeta): Promise<string> {
-  const index = await fetchRemoteIndex();
-  const banks = (index?.banks ?? []).filter((item) => item.id !== meta.id);
-  banks.unshift(meta);
-  const payload: BankIndex = {
-    version: 1,
-    updatedAt: nowISO(),
-    banks,
-  };
-  return JSON.stringify(payload, null, 2);
 }

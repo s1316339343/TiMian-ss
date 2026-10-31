@@ -16,7 +16,6 @@ export const PASS_SCORE = 90;
 export const STORAGE_KEYS = {
   localBanks: 'timian.localBanks.v1',
   aiConfig: 'timian.ai.v1',
-  publishConfig: 'timian.publish.v1',
 } as const;
 
 /** 常见 OpenAI 兼容接口预设；模型名可随时手动修改 */

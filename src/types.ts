@@ -69,14 +69,11 @@ export interface BankIndex {
 export interface BankSummary extends BankMeta {
   local?: boolean;
   remote?: boolean;
-  /** 已提交到 GitHub，等待 Pages 重建 */
-  pendingPublish?: boolean;
 }
 
 export interface LocalBankRecord {
   bank: Bank;
   savedAt: string;
-  pendingPublish?: boolean;
 }
 
 export interface AIConfig {
@@ -85,15 +82,6 @@ export interface AIConfig {
   model: string;
   /** 是否请求 response_format: json_object */
   jsonMode: boolean;
-}
-
-export interface PublishConfig {
-  owner: string;
-  repo: string;
-  branch: string;
-  token: string;
-  /** 题库 JSON 在仓库中的目录，例如 public/data/banks */
-  dir: string;
 }
 
 export interface AIPreset {

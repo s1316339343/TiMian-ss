@@ -42,8 +42,8 @@
 - AI 输出约定好的结构化 JSON
 - 解析结果可视化校对：改题干、改选项、勾选多选正确答案、填写填空标准答案、填写简答参考答案、删除题目、切换题型
 - 自动标出「AI 待确认」的题目（原文没有答案或模型不确定）
-- 保存为本地草稿、下载 JSON、一键发布到 GitHub Pages
-- 自动生成 / 更新 `index.json`，让新题库出现在首页
+- 保存为本地草稿、下载题库 JSON
+- 本地脚本 `npm run add-bank` 写入题库并更新 `index.json`；手动 `git push` 后由 GitHub Actions 部署
 
 **工程**
 
@@ -156,23 +156,23 @@ npm run build
 # 将 dist/ 的内容推到 gh-pages 分支根目录
 ```
 
-如果采用这种方式，管理后台「发布设置」里的 **题库目录** 要从
-`public/data/banks` 改成 `data/banks`，因为 `gh-pages` 分支上没有 `public/` 这一层。
+如果采用这种方式，仍然把题库 JSON 放在 `public/data/banks/`，构建时会被复制到
+`dist/data/banks/`；不需要修改源码里的题库目录。
 
 ## 管理员账号与安全边界
 
 这是一个**没有后端**的静态站点。管理员登录校验在浏览器里完成，作用是限制
-「上传 PDF / 调用 AI / 发布题库」这些入口，**不是真正的服务端鉴权**。
+「上传 PDF / 调用 AI / 导出题库」这些入口，**不是真正的服务端鉴权**。
 
 因此请理解以下边界：
 
 - 密码哈希会随 JS 一起下载到浏览器。懂技术的人可以离线暴力破解一个弱密码。
   请使用足够长的密码，并通过脚本重新生成配置。
-- 真正的安全边界是 **API Key** 和 **GitHub Token**：它们只保存在管理员本机的
-  `localStorage` 里，不会进入代码仓库，也不会被提交到 GitHub。
-- 不要把配置过 Token 的浏览器借给别人；不要在公共电脑上保存 Token。
-- 建议使用 **fine-grained PAT**，只授权本站仓库，只给 **Contents: Read and write**，
-  设置较短有效期，用完可以随时撤销。
+- **AI API Key 只保存在管理员本机的 `localStorage` 里**，不会进入代码仓库。
+- 本项目**不收集、不保存 GitHub Token**。更新线上的方式是你在本地执行
+  `git commit` / `git push`，使用本机已有的 Git 凭据或 SSH Key；GitHub Actions
+  用仓库自己的 `GITHUB_TOKEN` 构建部署。
+- 不要把配置过 AI Key 的浏览器借给别人；不要在公共电脑上保存 Key。
 - 登录态存在 `sessionStorage`，关闭标签页或 12 小时后失效。
 
 如果你需要真正的多用户鉴权，请改用带后端 / Serverless 的方案；本项目刻意保持纯静态。
@@ -347,40 +347,56 @@ Key 会存在管理员浏览器的 `localStorage` 中，因此建议：
 
 ## 发布题库
 
-### 自动发布（推荐）
+本项目**不在网页里保存 GitHub Token**，也不通过 GitHub API 提交。
+发布方式和 `ssyundua.xyz` 一样：本地生成静态 JSON → 写入项目 → 手动 `git push`
+→ GitHub Actions 自动构建部署。
 
-1. 在 GitHub 创建 fine-grained Token：
-   - Repository access：只选本站仓库；
-   - Permissions → Contents：**Read and write**。
-2. 后台展开「发布设置」，填写 owner / repo / 分支 / 题库目录 / Token，点 **保存**。
-3. 点 **测试连接**，确认显示「有写入权限」。
-4. 在题库信息区点 **发布到 GitHub Pages**。
+### 一次性准备
 
-发布时会发生两件事：
+- 本机能运行 Node 18+；
+- 本机已有仓库写权限（SSH Key 或 Git 凭据）；
+- 仓库 **Settings → Pages → Build and deployment** 的 Source 已设为
+  **GitHub Actions**（第一次部署时设置）。
 
-- 把 `public/data/banks/<bank-id>.json` 写入仓库；
-- 更新 `public/data/banks/index.json`，保留已有题库。
+### 每次新增 / 更新题库
 
-随后 GitHub Actions 会重新构建站点，通常 **1–2 分钟** 后新题库出现在首页。
-发布完成的题库会先以「本地 / 待生效」状态显示在管理员浏览器里，Pages 构建完成后自动切换为远程版本。
+1. 在后台完成解析、校对，点 **保存为本地草稿** 或 **下载题库 JSON**。
+2. 在项目根目录执行（路径换成实际下载位置）：
 
-> Token 会明文保存在当前浏览器的 `localStorage` 中。请使用最小权限、定期轮换，
-> 不要在公共设备上保存。
+   ```bash
+   npm run add-bank -- "C:\Users\你\Downloads\bank-xxxx.json"
+   ```
 
-### 手动发布
+   脚本会：
 
-没有 Token 或不想配置 Token 时：
+   - 写入 `public/data/banks/<file>.json`；
+   - 更新 `public/data/banks/index.json`；
+   - 同一个 `id` 会覆盖旧版本，不会重复添加。
 
-1. 后台点 **下载题库 JSON** 和 **下载 index.json**；
-2. 把题库文件放到 `public/data/banks/`；
-3. 用下载的 `index.json` 覆盖同名文件（或手动在 `banks` 数组里加一条）；
-4. 提交并推送。
+3. 提交并推送：
+
+   ```bash
+   git add public/data/banks
+   git commit -m "add question bank: 题库名称"
+   git push
+   ```
+
+4. GitHub Actions 会自动构建，约 **1–2 分钟** 后刷新首页即可看到新题库。
+
+### 不跑脚本时的手动做法
+
+1. 下载题库 JSON，放到 `public/data/banks/`；
+2. 在 `public/data/banks/index.json` 的 `banks` 数组里加一条对应 meta；
+3. `git add public/data/banks && git commit -m "add bank" && git push`。
+
+建议用 `add-bank` 脚本，避免手写 `index.json` 时漏掉 `fillCount`、`shortCount` 等字段。
 
 ### 本地草稿
 
 「保存为本地草稿」只写入当前浏览器、当前域名的 `localStorage`，用于临时保存解析结果。
 它不会出现在其他设备或访客的首页上；**localhost 和线上 GitHub Pages 属于不同域名，草稿也不会自动互通**。
-草稿可以继续编辑、下载或删除；要让线上首页出现，必须用「发布到 GitHub Pages」提交 JSON，或下载 JSON 后手动提交。
+草稿可以继续编辑、下载或删除；要让线上首页出现，必须下载 JSON，用 `npm run add-bank`
+写入项目后手动 `git push`。
 
 ## 题库 JSON 格式
 
@@ -514,9 +530,10 @@ Key 会存在管理员浏览器的 `localStorage` 中，因此建议：
 │  ├─ favicon.svg
 │  └─ data/banks/                 # 静态题库：index.json + 每套题库一个 JSON
 ├─ scripts/set-admin-password.mjs # 重新生成管理员密码哈希
+├─ scripts/add-bank.mjs           # 把下载的题库 JSON 写入 public/data/banks 并更新 index.json
 ├─ src/
 │  ├─ pages/                      # 首页 / 登录 / 答题 / 管理后台
-│  ├─ services/                   # AI、PDF、题库仓库、GitHub 发布、登录
+│  ├─ services/                   # AI、PDF、题库仓库、登录
 │  ├─ ui/layout.ts                # 页头 / 页脚 / 品牌
 │  ├─ utils/                      # DOM、格式化、加密、存储、路由工具
 │  ├─ admin.config.ts             # 管理员账号哈希（由脚本生成）
@@ -560,13 +577,16 @@ A：纯静态站没有可靠的主观题自动判卷能力，所以简答题只�
 A：参考[关于浏览器跨域](#关于浏览器跨域cors)。OpenRouter、Gemini、阿里云百炼支持浏览器直连；
 DeepSeek、OpenAI 官方接口需要 Worker 代理。
 
-**Q：发布报 401 / 403 / 404？**  
-A：检查 Token 是否有效、是否只授权了目标仓库、Contents 是否为 Read and write；
-检查 owner / repo / 分支是否填写正确。404 通常是 Token 没有该仓库权限。
+**Q：git push 报 401 / 403 / 404？**  
+A：这是本机 Git 凭据 / SSH Key 的问题，不是项目里的 Token。确认本机对
+`s1316339343/TiMian-ss` 有写权限，或重新配置 SSH Key / Git Credential Manager。
+404 通常是仓库地址写错或没有该仓库权限。
 
-**Q：发布成功了，但首页没有新题库？**  
-A：GitHub Pages 需要 1–2 分钟重新构建；构建完成后刷新页面（必要时强制刷新）。
-也可以在仓库的 Actions 页面查看部署进度。
+**Q：push 成功了，但首页没有新题库？**  
+A：先确认 `public/data/banks/` 里确实有新 JSON，并且 `index.json` 的 `banks`
+数组里有对应条目（用 `npm run add-bank` 会自动处理）。再打开仓库的
+[Actions](https://github.com/s1316339343/TiMian-ss/actions) 看构建是否成功；
+成功后 1–2 分钟刷新页面，必要时强制刷新。
 
 **Q：登录一直失败？**  
 A：确认使用的是 `src/admin.config.ts` 里配置的账号密码。修改密码后需要重新构建部署。
@@ -574,11 +594,11 @@ A：确认使用的是 `src/admin.config.ts` 里配置的账号密码。修改�
 
 **Q：为什么访客看不到我在后台看到的题库？**  
 A：那是「本地草稿」，只存在你的浏览器里（而且 localhost 和线上域名的存储不互通）。
-点「发布到 GitHub Pages」或下载 JSON 提交到仓库后，访客才能看到。
+在后台点「下载题库 JSON」，用 `npm run add-bank` 写入项目，再 `git push` 后访客才能看到。
 
 **Q：会保存做题记录吗？**  
-A：不会。答题状态只在当前页面内存中，刷新即丢失。`localStorage` 只存三类东西：
-本地题库草稿、AI 接口配置、GitHub 发布配置；`sessionStorage` 只存管理员登录态。
+A：不会。答题状态只在当前页面内存中，刷新即丢失。`localStorage` 只存两类东西：
+本地题库草稿、AI 接口配置；`sessionStorage` 只存管理员登录态。
 
 ## 设计取舍与限制
 

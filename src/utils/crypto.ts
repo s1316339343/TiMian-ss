@@ -15,7 +15,7 @@ export function base64ToBytes(base64: string): Uint8Array<ArrayBuffer> {
   return out;
 }
 
-/** 字符串（UTF-8）→ base64，用于 GitHub Contents API */
+/** 字符串（UTF-8）→ base64 */
 export function base64EncodeUtf8(text: string): string {
   return bytesToBase64(new TextEncoder().encode(text));
 }

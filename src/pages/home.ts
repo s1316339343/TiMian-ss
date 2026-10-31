@@ -212,7 +212,7 @@ export async function renderHome(root: HTMLElement): Promise<() => void> {
       const locals = state.banks.filter((bank) => bank.local).length;
       localNotice.hidden = locals === 0;
       if (locals) {
-        localNotice.innerHTML = `${icon('info', 16)} 本机有 <b>${locals}</b> 套未发布的题库，只有你自己能看到；到 <a href="#/admin">管理后台</a> 发布到 GitHub Pages 后，访客才能在线上首页看到。`;
+        localNotice.innerHTML = `${icon('info', 16)} 本机有 <b>${locals}</b> 套未发布的题库，只有你自己能看到；到 <a href="#/admin">管理后台</a> 下载题库 JSON，按「手动发布」步骤提交到仓库后，线上首页才会出现。`;
       }
     }
   }
@@ -293,7 +293,6 @@ function bankCard(bank: BankSummary): string {
   const color = (BANK_COLORS as readonly string[]).includes(bank.color ?? '') ? bank.color : 'blue';
   const badges = [
     bank.local ? '<span class="bank-badge is-local">仅本机</span>' : '',
-    bank.pendingPublish ? '<span class="bank-badge is-pending">待生效</span>' : '',
   ].join('');
 
   return `
