@@ -177,11 +177,14 @@ async function callChat(
   }
 
   const data = (await response.json().catch(() => null)) as {
-    choices?: Array<{ message?: { content?: unknown } }>;
+    choices?: Array<{ message?: { content?: unknown }; finish_reason?: string }>;
   } | null;
   const content = contentToText(data?.choices?.[0]?.message?.content);
   if (!content.trim()) {
     throw new AIError('AI 返回内容为空，请更换模型或稍后重试。', 'format');
+  }
+  if (data?.choices?.[0]?.finish_reason === 'length') {
+    throw new AIError('AI 输出被截断，正在拆分文本重试。', 'format');
   }
   return content;
 }
@@ -345,6 +348,7 @@ function normalizeMultiAnswer(raw: string, options: Question['options']): string
 function detectType(
   raw: Record<string, unknown>,
   options: Question['options'],
+  stem: string,
 ): Question['type'] | 'skip' {
   const typeText = pickText(raw.type, raw.questionType, raw.kind, raw.category).toLowerCase();
   if (/多选|multiple|multi[_\s-]?choice|checkbox|multi-select/.test(typeText)) {
@@ -360,10 +364,35 @@ function detectType(
   }
   if (/单选|single|choice|radio/.test(typeText)) return 'single';
   if (options.length === 0) {
-    // 没有选项、又没有明确题型时不做猜测，避免把残缺题误判成判断题
+    // 没有选项、又没有明确题型时做保守猜测：
+    // - 有下划线/空括号，按填空题（答案可能缺失，交给校对页补）
+    // - 像简答题的问句，按简答题，避免整段被跳过
+    if (/_{2,}|[（(]\s*[)）]/.test(stem)) return 'fill';
+    if (
+      /简答|简述|浅谈|描述|试述|问答|说明|为什么|如何|谈谈|分析|评价|比较/.test(stem) ||
+      /[？?]\s*$/.test(stem)
+    ) {
+      return 'short';
+    }
     return 'skip';
   }
   return 'single';
+}
+
+/**
+ * 识别「把答案写在括号里」的题，例如：
+ * ZigBee 数据链路层分成 LLC 和（   MAC   ）两个子层。
+ * 这类题经常被模型误判成判断题，这里统一还原成填空题。
+ */
+function extractInlineFill(stem: string): { stem: string; answer: string } | null {
+  const match = stem.match(/[（(][\u3000\s]{1,}([^（）()]{1,60}?)[\u3000\s]{1,}[)）]/);
+  if (!match || match.index === undefined) return null;
+  const answer = match[1].trim();
+  if (!answer || /^(正确|错误|对|错|是|否|√|×)$/.test(answer)) return null;
+  return {
+    stem: `${stem.slice(0, match.index)}（   ）${stem.slice(match.index + match[0].length)}`,
+    answer,
+  };
 }
 
 interface NormalizedChunk {
@@ -401,7 +430,8 @@ function normalizeResponse(json: unknown): NormalizedChunk {
     const raw = item as Record<string, unknown>;
     const stem = cleanupStem(pickText(raw.stem, raw.question, raw.title, raw.content, raw.body));
     const options = normalizeOptions(raw.options ?? raw.choices ?? raw.items);
-    const type = detectType(raw, options);
+    const inlineFill = extractInlineFill(stem);
+    const type = inlineFill ? 'fill' : detectType(raw, options, stem);
 
     if (type === 'skip' || !stem || stem.length < 2) {
       skipped++;
@@ -414,18 +444,40 @@ function normalizeResponse(json: unknown): NormalizedChunk {
       confidenceText === 'low' || raw.uncertain === true || raw.confident === false ? 'low' : 'high';
 
     if (type === 'fill') {
-      const answer = cleanAnswerText(rawAnswer);
+      const answer = inlineFill?.answer ?? cleanAnswerText(rawAnswer);
       questions.push({
         id: uid('q-'),
         type: 'fill',
-        stem,
+        stem: inlineFill?.stem ?? stem,
         options: [],
         answer,
         analysis: pickText(raw.analysis, raw.explanation, raw.explain, raw.parse, raw.comment),
         knowledge: pickText(raw.knowledge, raw.knowledgePoint, raw.tag, raw.point),
-        confidence: baseConfidence === 'high' && !answer ? 'low' : baseConfidence,
+        confidence: inlineFill
+          ? 'high'
+          : baseConfidence === 'high' && !answer
+            ? 'low'
+            : baseConfidence,
       });
       continue;
+    }
+
+    if (type === 'judge') {
+      // 模型有时会把「括号里写答案」的填空题输出成判断题
+      if (/_{2,}|[（(]\s*[)）]/.test(stem)) {
+        const judgeAnswer = /^(A|B|对|错|正确|错误|√|×)$/i.test(rawAnswer.trim());
+        questions.push({
+          id: uid('q-'),
+          type: 'fill',
+          stem,
+          options: [],
+          answer: judgeAnswer ? '' : cleanAnswerText(rawAnswer),
+          analysis: pickText(raw.analysis, raw.explanation, raw.explain, raw.parse, raw.comment),
+          knowledge: pickText(raw.knowledge, raw.knowledgePoint, raw.tag, raw.point),
+          confidence: judgeAnswer ? 'low' : baseConfidence,
+        });
+        continue;
+      }
     }
 
     if (type === 'short') {
@@ -546,15 +598,18 @@ async function parseChunk(
       config,
       [
         { role: 'system', content: SYSTEM_PROMPT },
-        { role: 'user', content: `以下是从 PDF 中提取的文本，请提取其中的单选题和判断题：\n\n${text}` },
+        {
+          role: 'user',
+          content: `以下是从 PDF 中提取的文本，请提取其中的单选题、多选题、判断题、填空题和简答题。必须逐题输出全部题目，不要只输出前一部分，也不要因为题目较多而省略；如果原文包含多套题，也要全部提取。\n\n${text}`,
+        },
       ],
       options.signal,
       4096,
     );
     return normalizeResponse(extractJson(content));
   } catch (error) {
-    if (error instanceof AIError && error.kind === 'format' && depth < 1 && text.length > 1200) {
-      // 可能是输出被截断：把这一段再拆成两半重试
+    if (error instanceof AIError && error.kind === 'format' && depth < 2 && text.length > 1200) {
+      // 可能是输出被截断或漏题：把这一段再拆成两半重试
       const middle = Math.floor(text.length / 2);
       let cut = text.indexOf('\n', middle);
       if (cut === -1) cut = middle;

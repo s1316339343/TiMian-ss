@@ -24,7 +24,7 @@ export function renderLogin(root: HTMLElement, ctx: { query: URLSearchParams }):
           </div>
           <h1>上传 PDF<br />AI 生成你的<br /><em>专属题库</em></h1>
           <ul class="login-points">
-            <li>${icon('sparkles', 18)}<div><b>AI 结构化解析</b><span>自动提取单选、多选、判断、简答</span></div></li>
+            <li>${icon('sparkles', 18)}<div><b>AI 结构化解析</b><span>自动提取单选、多选、判断、填空、简答</span></div></li>
             <li>${icon('layers', 18)}<div><b>静态 JSON 题库</b><span>题库直接托管在 GitHub Pages</span></div></li>
             <li>${icon('shield', 18)}<div><b>零记录</b><span>不收集账号，不存储答题数据</span></div></li>
           </ul>

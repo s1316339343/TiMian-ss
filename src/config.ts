@@ -115,5 +115,6 @@ export const BANK_EMOJIS = [
 export const PAGE_SIZE_LIMITS = {
   maxPdfPages: 300,
   maxTextChars: 400_000,
-  chunkSize: 4200,
+  // 每段越小，单次输出越不容易被 max_tokens 截断；150 题的 PDF 会分成更多段
+  chunkSize: 2800,
 };

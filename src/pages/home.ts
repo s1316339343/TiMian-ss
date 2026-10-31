@@ -93,6 +93,8 @@ export async function renderHome(root: HTMLElement): Promise<() => void> {
           ${admin ? `<a class="btn btn-primary" href="#/admin">${icon('plus', 18)} 新建题库</a>` : ''}
         </div>
 
+        <p class="local-notice" id="local-notice" hidden></p>
+
         <div class="toolbar" id="bank-toolbar" hidden>
           <label class="search-box">
             ${icon('search', 18)}
@@ -204,6 +206,15 @@ export async function renderHome(root: HTMLElement): Promise<() => void> {
     qs<HTMLElement>('#bank-summary', root)!.textContent = state.banks.length
       ? `${state.banks.length} 套题库 · 共 ${formatNumber(total)} 道题 · 点开任意一套开始练习`
       : '题库还是空的';
+
+    const localNotice = qs<HTMLElement>('#local-notice', root);
+    if (localNotice) {
+      const locals = state.banks.filter((bank) => bank.local).length;
+      localNotice.hidden = locals === 0;
+      if (locals) {
+        localNotice.innerHTML = `${icon('info', 16)} 本机有 <b>${locals}</b> 套未发布的题库，只有你自己能看到；到 <a href="#/admin">管理后台</a> 发布到 GitHub Pages 后，访客才能在线上首页看到。`;
+      }
+    }
   }
 
   /* -------------------------------------------------------------- 事件 */
@@ -281,7 +292,7 @@ function skeletonCards(): string {
 function bankCard(bank: BankSummary): string {
   const color = (BANK_COLORS as readonly string[]).includes(bank.color ?? '') ? bank.color : 'blue';
   const badges = [
-    bank.local ? '<span class="bank-badge is-local">本地</span>' : '',
+    bank.local ? '<span class="bank-badge is-local">仅本机</span>' : '',
     bank.pendingPublish ? '<span class="bank-badge is-pending">待生效</span>' : '',
   ].join('');
 
