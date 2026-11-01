@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-01T07:29:36.458Z",
+  "updatedAt": "2026-11-01T07:30:12.021Z",
   "banks": [
     {
       "id": "bank-mvw35hauesg0zm1e0po27",
@@ -37,24 +37,6 @@
       "shortCount": 5,
       "createdAt": "2026-10-31T10:25:51.720Z",
       "updatedAt": "2026-10-31T10:31:08.486Z"
-    },
-    {
-      "id": "health-life",
-      "title": "生活常识 · 健康与安全",
-      "description": "体温心率、急救处理、消防与日常健康常识，适合快速自测。",
-      "category": "生活常识",
-      "emoji": "🩺",
-      "color": "violet",
-      "source": "示例数据",
-      "file": "health-life.json",
-      "questionCount": 13,
-      "singleCount": 8,
-      "multipleCount": 0,
-      "judgeCount": 5,
-      "fillCount": 0,
-      "shortCount": 0,
-      "createdAt": "2026-02-08T09:00:00.000Z",
-      "updatedAt": "2026-02-08T09:00:00.000Z"
     }
   ]
 }
