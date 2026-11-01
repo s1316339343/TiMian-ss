@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-01T07:28:26.627Z",
+  "updatedAt": "2026-11-01T07:29:36.458Z",
   "banks": [
     {
       "id": "bank-mvw35hauesg0zm1e0po27",
@@ -37,24 +37,6 @@
       "shortCount": 5,
       "createdAt": "2026-10-31T10:25:51.720Z",
       "updatedAt": "2026-10-31T10:31:08.486Z"
-    },
-    {
-      "id": "computer-basics",
-      "title": "计算机基础 · 办公技能",
-      "description": "Excel、Word、PowerPoint 与 Windows 常用快捷键和基础概念。",
-      "category": "计算机",
-      "emoji": "💻",
-      "color": "emerald",
-      "source": "示例数据",
-      "file": "computer-basics.json",
-      "questionCount": 16,
-      "singleCount": 10,
-      "multipleCount": 0,
-      "judgeCount": 5,
-      "fillCount": 1,
-      "shortCount": 0,
-      "createdAt": "2026-02-09T09:00:00.000Z",
-      "updatedAt": "2026-02-09T09:00:00.000Z"
     },
     {
       "id": "health-life",
