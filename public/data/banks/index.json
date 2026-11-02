@@ -1,7 +1,25 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-01T07:30:12.021Z",
+  "updatedAt": "2026-11-02T06:47:34.731Z",
   "banks": [
+    {
+      "id": "bank-mvw95kln1pgczed1i017g6",
+      "title": "微机原理与接口考试题",
+      "description": "",
+      "category": "2026沧交物联网（专升本）考试题",
+      "emoji": "📘",
+      "color": "blue",
+      "source": "专升本复习题（2026110）(1).pdf",
+      "file": "bank-mvw95kln1pgczed1i017g6.json",
+      "questionCount": 51,
+      "singleCount": 15,
+      "multipleCount": 0,
+      "judgeCount": 15,
+      "fillCount": 10,
+      "shortCount": 11,
+      "createdAt": "2026-10-31T10:25:51.720Z",
+      "updatedAt": "2026-11-02T06:45:58.241Z"
+    },
     {
       "id": "bank-mvw35hauesg0zm1e0po27",
       "title": "物联网架构与技术考试题",
@@ -19,24 +37,6 @@
       "shortCount": 11,
       "createdAt": "2026-10-31T07:35:58.762Z",
       "updatedAt": "2026-10-31T10:32:46.658Z"
-    },
-    {
-      "id": "bank-mvw95kln1pgczed1i017g6",
-      "title": "2026沧交微机原理与架构考试题",
-      "description": "",
-      "category": "",
-      "emoji": "📘",
-      "color": "blue",
-      "source": "专升本复习题（2026110）(1).pdf",
-      "file": "bank-mvw95kln1pgczed1i017g6.json",
-      "questionCount": 41,
-      "singleCount": 15,
-      "multipleCount": 0,
-      "judgeCount": 15,
-      "fillCount": 6,
-      "shortCount": 5,
-      "createdAt": "2026-10-31T10:25:51.720Z",
-      "updatedAt": "2026-10-31T10:31:08.486Z"
     }
   ]
 }
