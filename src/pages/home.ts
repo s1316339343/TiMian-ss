@@ -90,7 +90,7 @@ export async function renderHome(root: HTMLElement): Promise<() => void> {
             <h2>题库列表</h2>
             <p id="bank-summary">正在加载题库…</p>
           </div>
-          ${admin ? `<a class="btn btn-primary" href="#/admin">${icon('plus', 18)} 新建题库</a>` : ''}
+          ${admin ? `<a class="btn btn-primary" href="#/editor">${icon('plus', 18)} 新建题库</a>` : ''}
         </div>
 
         <p class="local-notice" id="local-notice" hidden></p>

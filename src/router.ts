@@ -1,6 +1,7 @@
 import { APP } from './config';
 import { isAdmin } from './services/auth';
 import { renderAdmin } from './pages/admin';
+import { renderEditor } from './pages/editor';
 import { renderHome } from './pages/home';
 import { renderLogin } from './pages/login';
 import { renderQuiz } from './pages/quiz';
@@ -26,6 +27,12 @@ const routes: RouteDef[] = [
   { pattern: /^\/login$/, keys: [], page: renderLogin },
   { pattern: /^\/quiz\/([^/]+)$/, keys: ['id'], page: renderQuiz },
   { pattern: /^\/admin$/, keys: [], page: renderAdmin, admin: true },
+  {
+    pattern: /^\/editor(?:\/([^/]+))?$/,
+    keys: ['id'],
+    page: renderEditor,
+    admin: true,
+  },
 ];
 
 let cleanup: (() => void) | null = null;

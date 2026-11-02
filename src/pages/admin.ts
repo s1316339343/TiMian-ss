@@ -361,23 +361,23 @@ export function renderAdmin(root: HTMLElement): () => void {
       if (!state.meta.source.trim()) state.meta.source = sourceName;
       state.meta.createdAt = nowISO();
 
-      const counts = countByType(result.questions);
-      showStatus(root, {
-        title: '解析完成',
-        detail: `共 ${result.questions.length} 题 · 单选 ${counts.singleCount} · 多选 ${counts.multipleCount} · 判断 ${counts.judgeCount} · 填空 ${counts.fillCount} · 简答 ${counts.shortCount}${
-          result.skipped ? ` · 跳过 ${result.skipped} 个非目标题` : ''
-        }${result.duplicates ? ` · 去重 ${result.duplicates} 题` : ''}`,
-        progress: 100,
-        tone: 'success',
-        cancel: false,
-      });
+      const bank = buildBank(state);
+      if (!saveLocalBank(bank)) {
+        toast('解析完成，但草稿保存失败：浏览器存储空间不足或被禁用', 'error', 4600);
+        showPanels();
+        syncBankForm();
+        renderReview();
+        renderPreview(root, state);
+        return;
+      }
 
-      showPanels();
-      syncBankForm();
-      renderReview();
-      renderPreview(root, state);
-      toast(`解析完成，共识别 ${result.questions.length} 道题`, 'success');
-      qs<HTMLElement>('#review-panel', root)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      state.dirty = false;
+      toast(
+        `解析完成，共识别 ${result.questions.length} 道题；已保存草稿，正在打开编辑器`,
+        'success',
+        4200,
+      );
+      go(`/editor/${encodeURIComponent(bank.id)}`);
     } catch (error) {
       stopElapsedTimer();
       handleParseError(root, error);
@@ -627,6 +627,13 @@ export function renderAdmin(root: HTMLElement): () => void {
         return;
       }
 
+      case 'edit-bank': {
+        const id = actionEl.dataset.id ?? '';
+        if (!id) return;
+        go(`/editor/${encodeURIComponent(id)}`);
+        return;
+      }
+
       case 'download-library': {
         const bank = await loadBankById(actionEl.dataset.id ?? '');
         if (!bank) {
@@ -721,6 +728,12 @@ export function renderAdmin(root: HTMLElement): () => void {
     if (!Number.isFinite(qi)) return;
     const question = state.questions[qi];
     if (!question) return;
+
+    if (target instanceof HTMLInputElement && target.dataset.field === 'scored') {
+      question.scored = question.type === 'short' ? false : target.checked;
+      state.dirty = true;
+      return;
+    }
 
     if (target.dataset.field === 'type' && target instanceof HTMLSelectElement) {
       const nextType = target.value;
@@ -911,6 +924,7 @@ function adminShell(): string {
             <span class="eyebrow">${icon('settings', 14)} ADMIN CONSOLE</span>
             <h1>题库管理</h1>
             <p>上传 PDF → AI 解析 → 校对答案 → 保存为静态 JSON。所有密钥都只保存在你的浏览器里。</p>
+            <a class="btn btn-outline btn-sm editor-entry" href="#/editor">${icon('plus', 16)} 手动建题 / 编辑题库</a>
           </div>
           <div class="admin-steps">
             <div class="admin-step is-active is-current" data-step="1"><i>1</i><span>上传与解析</span></div>
@@ -1172,11 +1186,12 @@ git push</pre>
 /*                              工具函数                                 */
 /* ===================================================================== */
 
-function questionEditor(question: Question, index: number): string {
+export function questionEditor(question: Question, index: number): string {
   const isJudge = question.type === 'judge';
   const isShort = question.type === 'short';
   const isFill = question.type === 'fill';
   const isMultiple = question.type === 'multiple';
+  const isScored = isShort ? false : question.scored !== false;
   const selectedKeys = isMultiple ? splitAnswerKeys(question.answer) : [];
 
   const options = question.options
@@ -1251,6 +1266,10 @@ function questionEditor(question: Question, index: number): string {
         <select class="select select-sm" data-field="type" data-qi="${index}" aria-label="题型">
           ${typeOptions}
         </select>
+        <label class="q-score-toggle" title="${isShort ? '简答题没有自动评分，固定不计分' : '取消勾选后本题不计入总分，仍可作答和查看答案'}">
+          <input type="checkbox" data-field="scored" data-qi="${index}" ${isScored ? 'checked' : ''} ${isShort ? 'disabled' : ''} />
+          计分
+        </label>
         ${
           isShort
             ? question.answer.trim()
@@ -1285,7 +1304,7 @@ function questionEditor(question: Question, index: number): string {
     </article>`;
 }
 
-function answerLabel(question: Question): string {
+export function answerLabel(question: Question): string {
   if (question.type === 'short') {
     return `参考答案：${question.answer.trim() ? '已填写' : '暂无'}`;
   }
@@ -1299,16 +1318,19 @@ function answerLabel(question: Question): string {
   return `答案：${question.answer}${option ? ` · ${option.text.slice(0, 18)}` : ''}`;
 }
 
-function updateAnswerLabel(root: HTMLElement, question: Question, index: number): void {
+export function updateAnswerLabel(root: HTMLElement, question: Question, index: number): void {
   const label = qs<HTMLElement>(`[data-answer-label="${index}"]`, root);
   if (label) label.textContent = answerLabel(question);
 }
 
-function convertType(question: Question, type: QuestionType): void {
+export function convertType(question: Question, type: QuestionType): void {
   if (question.type === type) return;
   const previousType = question.type;
   const previousKeys = answerKeys(question);
   question.type = type;
+  if (type === 'short') question.scored = false;
+  else if (previousType === 'short') question.scored = true;
+  else question.scored = question.scored !== false;
 
   if (type === 'fill') {
     question.options = [];
@@ -1349,7 +1371,7 @@ function convertType(question: Question, type: QuestionType): void {
   question.confidence = 'high';
 }
 
-function reindexAfterRemoval(question: Question, optionIndex: number): void {
+export function reindexAfterRemoval(question: Question, optionIndex: number): void {
   const oldIndexes = answerKeys(question)
     .map((key) => question.options.findIndex((option) => option.key === key))
     .filter((index) => index >= 0);
@@ -1366,7 +1388,7 @@ function reindexAfterRemoval(question: Question, optionIndex: number): void {
     .join(',');
 }
 
-function clearQuestionFlags(target: HTMLElement): void {
+export function clearQuestionFlags(target: HTMLElement): void {
   const card = target.closest('.q-edit');
   if (!card) return;
   card.querySelector('.q-edit-flag.is-missing')?.remove();
@@ -1423,6 +1445,7 @@ function buildBank(state: AdminState): Bank {
       answer,
       analysis: (question.analysis ?? '').trim(),
       knowledge: (question.knowledge ?? '').trim(),
+      scored: question.type === 'short' ? false : question.scored !== false,
       confidence: question.confidence ?? 'high',
     };
   });
@@ -1688,14 +1711,11 @@ function libraryRow(bank: BankSummary): string {
         <span>${counts} · 更新于 ${formatDate(bank.updatedAt)}</span>
       </div>
       <div class="draft-actions">
-        ${
-          bank.local
-            ? `<button type="button" class="btn btn-ghost btn-sm" data-act="load-draft" data-id="${esc(bank.id)}">继续编辑</button>`
-            : ''
-        }
+        <button type="button" class="btn btn-ghost btn-sm" data-act="edit-bank" data-id="${esc(bank.id)}">编辑</button>
         <button type="button" class="btn btn-ghost btn-sm" data-act="download-library" data-id="${esc(bank.id)}">下载 JSON</button>
         <button type="button" class="icon-btn icon-btn-sm" data-act="delete-library" data-id="${esc(bank.id)}" data-title="${esc(title)}" data-local="${bank.local ? '1' : '0'}" data-remote="${bank.remote ? '1' : '0'}" aria-label="删除题库">${icon('trash', 15)}</button>
       </div>
     </div>`;
 }
+
 

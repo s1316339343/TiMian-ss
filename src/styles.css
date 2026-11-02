@@ -1824,6 +1824,11 @@ svg {
   font-weight: 600;
 }
 
+.q-flag.is-unscored-flag {
+  background: #f1f5f9;
+  color: var(--text-3);
+}
+
 .q-stem {
   margin: 16px 0 22px;
   font-size: 19px;
@@ -1948,6 +1953,14 @@ svg {
   border-radius: 8px;
   background: var(--primary-soft);
   color: var(--primary-700);
+  font-weight: 600;
+}
+
+.q-hint-unscored {
+  padding: 7px 10px;
+  border-radius: 8px;
+  background: var(--amber-soft);
+  color: #92400e;
   font-weight: 600;
 }
 
@@ -2158,6 +2171,23 @@ svg {
   border-color: var(--primary);
 }
 
+.sheet-cell.is-unscored:not(.is-short) {
+  border-style: dashed;
+  color: var(--text-3);
+}
+
+.sheet-cell.is-unscored:not(.is-short).is-answered {
+  border-style: solid;
+  border-color: var(--amber-line);
+  background: var(--amber-soft);
+  color: #92400e;
+}
+
+.sheet-cell.is-unscored:not(.is-short).is-current {
+  border-style: solid;
+  border-color: var(--primary);
+}
+
 .sheet-short-note {
   margin: -4px 0 12px;
   color: var(--text-3);
@@ -2201,6 +2231,12 @@ svg {
 }
 
 .dot.is-short {
+  border-style: dashed;
+  border-color: var(--amber);
+  background: transparent;
+}
+
+.dot.is-unscored {
   border-style: dashed;
   border-color: var(--amber);
   background: transparent;
@@ -2599,6 +2635,11 @@ svg {
 .review-status.short {
   background: #f5f3ff;
   color: #6d28d9;
+}
+
+.review-status.unscored {
+  background: #f1f5f9;
+  color: #475569;
 }
 
 .review-stem {
@@ -3320,6 +3361,36 @@ svg {
   margin-bottom: 8px;
 }
 
+.q-score-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 7px;
+  border-radius: 7px;
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-size: 11px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.q-score-toggle input {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  accent-color: var(--primary);
+}
+
+.q-score-toggle input:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.q-score-toggle:has(input:disabled) {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
 .q-edit-no {
   color: #a8b3c4;
   font-size: 11.5px;
@@ -3774,6 +3845,150 @@ svg {
 .lib-badge.is-local {
   background: var(--amber-soft);
   color: #92400e;
+}
+
+.editor-entry {
+  margin-top: 12px;
+}
+
+.editor-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  margin: 8px 0 18px;
+}
+
+.editor-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 8px;
+  color: var(--text-3);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.editor-back:hover {
+  color: var(--primary);
+}
+
+.editor-head h1 {
+  font-size: 28px;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+}
+
+.editor-head p {
+  max-width: 760px;
+  margin-top: 6px;
+  color: var(--text-2);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.editor-head code,
+.editor-remote-note code,
+.editor-id code {
+  padding: 1px 5px;
+  border-radius: 5px;
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-size: 11px;
+}
+
+.editor-bank-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 16px;
+}
+
+.editor-bank-grid .field-wide {
+  grid-column: 1 / -1;
+}
+
+.editor-id {
+  margin-top: 12px;
+  color: var(--text-3);
+  font-size: 11.5px;
+}
+
+.editor-remote-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin: 0 0 16px;
+  padding: 10px 12px;
+  border: 1px solid var(--amber-line);
+  border-radius: 10px;
+  background: var(--amber-soft);
+  color: #92400e;
+  font-size: 11.5px;
+  line-height: 1.7;
+}
+
+.editor-remote-note svg {
+  flex: none;
+  margin-top: 1px;
+}
+
+.editor-addbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.editor-issues {
+  margin: 0 0 14px;
+  padding: 9px 12px;
+  border: 1px solid #fde68a;
+  border-radius: 9px;
+  background: #fffbeb;
+  color: #92400e;
+  font-size: 11.5px;
+  line-height: 1.7;
+}
+
+.q-edit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.editor-savebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 18px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+}
+
+.editor-savebar .save-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+@media (max-width: 720px) {
+  .editor-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .editor-bank-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .editor-head h1 {
+    font-size: 24px;
+  }
 }
 
 .save-result {

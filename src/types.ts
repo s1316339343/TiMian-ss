@@ -22,6 +22,11 @@ export interface Question {
   answer: string;
   analysis?: string;
   knowledge?: string;
+  /**
+   * 是否参与自动评分。默认：选择题 / 填空题计分，简答题不计分。
+   * false 时仍可作答和查看正确答案，但不计入总分、错题和只练错题。
+   */
+  scored?: boolean;
   /** AI 解析置信度，原文没有答案时标记为 low */
   confidence?: 'high' | 'low';
 }

@@ -9,6 +9,8 @@ import {
   answerKeys,
   chosenKeys,
   isCorrectChoice,
+  isScoredQuestion,
+  isUnscoredQuestion,
   optionKeyLabel,
   TYPE_LABELS,
 } from '../utils/question';
@@ -19,6 +21,7 @@ interface ResultData {
   blank: number;
   objectiveTotal: number;
   shortTotal: number;
+  unscoredTotal: number;
   shortRevealed: number;
   total: number;
   score: number;
@@ -115,11 +118,15 @@ class QuizApp {
   }
 
   private get objectiveTotal(): number {
-    return this.questions.filter((question) => question.type !== 'short').length;
+    return this.questions.filter(isScoredQuestion).length;
   }
 
   private get shortTotal(): number {
     return this.questions.filter((question) => question.type === 'short').length;
+  }
+
+  private get unscoredTotal(): number {
+    return this.questions.filter(isUnscoredQuestion).length;
   }
 
   private startTimer(): void {
@@ -145,12 +152,12 @@ class QuizApp {
   private renderShell(): void {
     const total = this.questions.length;
     const objectiveTotal = this.objectiveTotal;
-    const shortTotal = this.shortTotal;
-    const shortLegend = shortTotal
-      ? '<span><i class="dot is-short"></i>简答</span>'
+    const unscoredTotal = this.unscoredTotal;
+    const unscoredLegend = unscoredTotal
+      ? '<span><i class="dot is-unscored"></i>不计分</span>'
       : '';
-    const sheetNote = shortTotal
-      ? `<p class="sheet-short-note">简答题 ${shortTotal} 题 · 不计分</p>`
+    const sheetNote = unscoredTotal
+      ? `<p class="sheet-short-note">${unscoredTotal} 题 · 不计分</p>`
       : '';
 
     this.root.innerHTML = `
@@ -164,8 +171,8 @@ class QuizApp {
                 ${this.modeLabel ? `<span class="quiz-mode">${esc(this.modeLabel)}</span>` : ''}
                 <span>共 ${total} 题</span>
                 ${
-                  shortTotal
-                    ? `<span class="quiz-sub-note">简答 ${shortTotal} 不计分</span>`
+                  unscoredTotal
+                    ? `<span class="quiz-sub-note">不计分 ${unscoredTotal}</span>`
                     : ''
                 }
               </p>
@@ -205,11 +212,11 @@ class QuizApp {
                 <span><i class="dot is-answered"></i>已答</span>
                 <span><i class="dot"></i>未答</span>
                 <span><i class="dot is-current"></i>当前</span>
-                ${shortLegend}
+                ${unscoredLegend}
               </div>
               ${sheetNote}
               <button type="button" class="btn btn-primary btn-block" data-act="submit">交卷</button>
-              <p class="sheet-tip">交卷后查看得分与逐题解析${shortTotal ? '（简答题不计分）' : ''}</p>
+              <p class="sheet-tip">交卷后查看得分与逐题解析${unscoredTotal ? '（含不计分题）' : ''}</p>
             </div>
           </aside>
         </main>
@@ -230,7 +237,7 @@ class QuizApp {
               <span><i class="dot is-answered"></i>已答</span>
               <span><i class="dot"></i>未答</span>
               <span><i class="dot is-current"></i>当前</span>
-              ${shortLegend}
+              ${unscoredLegend}
             </div>
             ${sheetNote}
             <button type="button" class="btn btn-primary btn-block" data-act="submit">交卷</button>
@@ -258,6 +265,7 @@ class QuizApp {
     const isShort = question.type === 'short';
     const isFill = question.type === 'fill';
     const isMultiple = question.type === 'multiple';
+    const isUnscored = !isScoredQuestion(question);
     const isLast = this.index === this.questions.length - 1;
     const chosen = chosenKeys(question, this.answers.get(question.id));
 
@@ -294,6 +302,11 @@ class QuizApp {
               ? `<span class="q-flag" title="AI 未能确认这道题的答案，仅供参考">待确认</span>`
               : ''
           }
+          ${
+            isUnscored && !isShort
+              ? '<span class="q-flag is-unscored-flag" title="本题不计入总分和错题">不计分</span>'
+              : ''
+          }
         </div>
         <h2 class="q-stem">${esc(question.stem)}</h2>
         ${
@@ -305,7 +318,14 @@ class QuizApp {
         }
         ${
           isMultiple
-            ? '<p class="q-hint q-hint-multi">多选题：全部选对才得分，少选 / 错选均不得分</p>'
+            ? isUnscored
+              ? '<p class="q-hint q-hint-multi">多选题：全部选对才显示为正确；本题不计分</p>'
+              : '<p class="q-hint q-hint-multi">多选题：全部选对才得分，少选 / 错选均不得分</p>'
+            : ''
+        }
+        ${
+          isUnscored && !isShort
+            ? '<p class="q-hint q-hint-unscored">本题不计分，仅作练习；不计入总分和错题</p>'
             : ''
         }
         ${
@@ -397,12 +417,13 @@ class QuizApp {
   }
 
   private paintSheet(): void {
-    const objective = this.questions.filter((question) => question.type !== 'short');
+    const objective = this.questions.filter(isScoredQuestion);
     const objectiveAnswered = objective.filter((question) => this.answers.has(question.id)).length;
 
     const html = this.questions
       .map((question, index) => {
         const isShort = question.type === 'short';
+        const isUnscored = isUnscoredQuestion(question);
         const answered = !isShort && this.answers.has(question.id);
         const revealed = isShort && this.revealed.has(question.id);
         const drafted = isShort && Boolean(this.shortAnswers.get(question.id)?.trim());
@@ -411,6 +432,7 @@ class QuizApp {
           'sheet-cell',
           answered ? 'is-answered' : '',
           isShort ? 'is-short' : '',
+          isUnscored ? 'is-unscored' : '',
           revealed ? 'is-revealed' : '',
           drafted && !revealed ? 'is-drafted' : '',
           current ? 'is-current' : '',
@@ -418,8 +440,8 @@ class QuizApp {
           .filter(Boolean)
           .join(' ');
         return `<button type="button" class="${classes}" data-act="jump" data-index="${index}" aria-label="第 ${index + 1} 题${
-          isShort ? '（简答题，不计分）' : ''
-        }" title="${isShort ? '简答题 · 不计分' : `第 ${index + 1} 题`}">${index + 1}</button>`;
+          isShort ? '（简答题，不计分）' : isUnscored ? '（不计分）' : ''
+        }" title="${isUnscored ? '不计分题' : `第 ${index + 1} 题`}">${index + 1}</button>`;
       })
       .join('');
 
@@ -428,7 +450,7 @@ class QuizApp {
     });
     const answeredLabel = objective.length
       ? `${objectiveAnswered}/${objective.length}`
-      : `简答 ${this.shortTotal}`;
+      : `不计分 ${this.unscoredTotal}`;
     qsa<HTMLElement>('.js-answered', this.root).forEach((el) => {
       el.textContent = answeredLabel;
     });
@@ -500,7 +522,7 @@ class QuizApp {
   }
 
   private computeResult(): ResultData {
-    const objective = this.questions.filter((question) => question.type !== 'short');
+    const objective = this.questions.filter(isScoredQuestion);
     let correct = 0;
     let wrong = 0;
     for (const question of objective) {
@@ -521,6 +543,7 @@ class QuizApp {
       blank,
       objectiveTotal: objective.length,
       shortTotal,
+      unscoredTotal: this.unscoredTotal,
       shortRevealed,
       total: this.questions.length,
       score: objective.length ? Math.round((correct / objective.length) * 100) : 0,
@@ -530,12 +553,14 @@ class QuizApp {
 
   private async submit(): Promise<void> {
     if (this.submitted) return;
-    const blank = this.objectiveTotal - this.answers.size;
+    const scored = this.questions.filter(isScoredQuestion);
+    const scoredAnswered = scored.filter((question) => this.answers.has(question.id)).length;
+    const blank = scored.length - scoredAnswered;
     if (blank > 0) {
-      const shortHint = this.shortTotal ? '简答题不计入得分，可以留空。' : '';
+      const unscoredHint = this.unscoredTotal ? '不计分题可以留空。' : '';
       const confirmed = await confirmDialog({
         title: '还有题目没有作答',
-        message: `还有 ${blank} 道选择题未作答，交卷后会按答错计算。${shortHint}`,
+        message: `还有 ${blank} 道计分题未作答，交卷后会按答错计算。${unscoredHint}`,
         confirmText: '交卷',
         cancelText: '继续答题',
       });
@@ -552,7 +577,7 @@ class QuizApp {
 
     document.title = this.result.objectiveTotal
       ? `${this.result.score} 分 · ${this.bank.title}`
-      : `简答题 · ${this.bank.title}`;
+      : `不计分 · ${this.bank.title}`;
     window.scrollTo({ top: 0, behavior: 'auto' });
   }
 
@@ -594,16 +619,16 @@ class QuizApp {
           ? 'is-mid'
           : 'is-low';
     const headline = !hasObjective
-      ? '本套题只有简答题'
+      ? '本套题没有计分题'
       : result.score >= PASS_SCORE
         ? '太棒了，顺利通过！'
         : result.score >= 60
           ? '再做几套就稳了'
           : '别灰心，重点看解析';
-    const shortNote = result.shortTotal
-      ? `<p class="result-short-note">${icon('info', 14)} 简答题 ${result.shortTotal} 题仅展示参考答案，不计入得分${
-          result.shortRevealed ? `（已查看 ${result.shortRevealed} 题）` : ''
-        }</p>`
+    const unscoredNote = result.unscoredTotal
+      ? `<p class="result-short-note">${icon('info', 14)} ${result.unscoredTotal} 题不计分，仅展示答案/参考${
+          result.shortTotal ? `（其中简答 ${result.shortTotal} 题）` : ''
+        }${result.shortRevealed ? ` · 已查看 ${result.shortRevealed} 题参考答案` : ''}</p>`
       : '';
 
     this.root.innerHTML = `
@@ -635,11 +660,11 @@ class QuizApp {
                     ? `答对 <b class="ok">${result.correct}</b> 题 ·
                        答错 <b class="bad">${result.wrong}</b> 题
                        ${result.blank ? `· 未答 <b>${result.blank}</b> 题` : ''}
-                       ${result.shortTotal ? `· 简答 <b>${result.shortTotal}</b> 题不计分` : ''}`
-                    : `共 <b>${result.shortTotal}</b> 道简答题，请对照参考答案自测`
+                       ${result.unscoredTotal ? `· ${result.unscoredTotal} 题不计分` : ''}`
+                    : `共 <b>${result.unscoredTotal}</b> 道不计分题，请对照答案自测`
                 }
               </p>
-              ${shortNote}
+              ${unscoredNote}
               <div class="result-metrics">
                 <div><span>正确率</span><b>${
                   hasObjective ? `${percent(result.correct, result.objectiveTotal)}%` : '—'
@@ -673,9 +698,9 @@ class QuizApp {
                 <p>${
                   hasObjective
                     ? `共 ${result.total} 题 · ${
-                        wrongTotal > 0 ? `${wrongTotal} 题需要回顾` : '客观题全部答对'
-                      }${result.shortTotal ? ` · 简答 ${result.shortTotal} 题不计分` : ''}`
-                    : `共 ${result.shortTotal} 道简答题`
+                        wrongTotal > 0 ? `${wrongTotal} 题需要回顾` : '计分题全部答对'
+                      }${result.unscoredTotal ? ` · ${result.unscoredTotal} 题不计分` : ''}`
+                    : `共 ${result.unscoredTotal} 道不计分题`
                 }</p>
               </div>
               <div class="review-tabs">
@@ -708,26 +733,39 @@ class QuizApp {
       .map((question, index) => ({ question, index }))
       .filter(({ question }) => {
         if (this.reviewFilter === 'all') return true;
-        if (question.type === 'short') return false;
+        if (!isScoredQuestion(question)) return false;
         return !isCorrectChoice(question, this.answers.get(question.id));
       })
       .map(({ question, index }) => {
         if (question.type === 'short') return this.shortReviewItem(question, index);
+        const scored = isScoredQuestion(question);
 
         if (question.type === 'fill') {
           const chosen = this.answers.get(question.id) ?? '';
           const correct = isCorrectChoice(question, chosen);
-          const status = chosen ? (correct ? 'correct' : 'wrong') : 'blank';
-          const statusLabel = chosen ? (correct ? '答对' : '答错') : '未答';
-          const open = status !== 'correct' && opened++ < 1;
+          const status = scored ? (chosen ? (correct ? 'correct' : 'wrong') : 'blank') : 'unscored';
+          const statusLabel = scored
+            ? chosen
+              ? correct
+                ? '答对'
+                : '答错'
+              : '未答'
+            : '不计分';
+          const open = scored && status !== 'correct' && opened++ < 1;
           return this.fillReviewItem(question, index, chosen, correct, status, statusLabel, open);
         }
 
         const chosen = this.answers.get(question.id) ?? '';
         const correct = isCorrectChoice(question, chosen);
-        const status = chosen ? (correct ? 'correct' : 'wrong') : 'blank';
-        const statusLabel = chosen ? (correct ? '答对' : '答错') : '未答';
-        const open = status !== 'correct' && opened++ < 1;
+        const status = scored ? (chosen ? (correct ? 'correct' : 'wrong') : 'blank') : 'unscored';
+        const statusLabel = scored
+          ? chosen
+            ? correct
+              ? '答对'
+              : '答错'
+            : '未答'
+          : '不计分';
+        const open = scored && status !== 'correct' && opened++ < 1;
 
         const expected = answerKeys(question);
         const chosenList = chosenKeys(question, chosen);
@@ -922,7 +960,7 @@ class QuizApp {
       case 'practice-wrong': {
         const subset = this.questions.filter(
           (question) =>
-            question.type !== 'short' && !isCorrectChoice(question, this.answers.get(question.id)),
+            isScoredQuestion(question) && !isCorrectChoice(question, this.answers.get(question.id)),
         );
         if (!subset.length) {
           toast('这套题没有错题，太棒了', 'success');

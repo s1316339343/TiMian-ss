@@ -113,6 +113,7 @@ export function normalizeQuestion(raw: unknown, index: number): Question | null 
       answer,
       analysis: typeof obj.analysis === 'string' ? obj.analysis : '',
       knowledge: typeof obj.knowledge === 'string' ? obj.knowledge : '',
+      scored: obj.scored !== false,
       confidence: obj.confidence === 'low' ? 'low' : 'high',
     };
   }
@@ -126,6 +127,7 @@ export function normalizeQuestion(raw: unknown, index: number): Question | null 
       answer: cleanAnswerText(rawAnswer),
       analysis: typeof obj.analysis === 'string' ? obj.analysis : '',
       knowledge: typeof obj.knowledge === 'string' ? obj.knowledge : '',
+      scored: false,
       confidence: obj.confidence === 'low' || !rawAnswer ? 'low' : 'high',
     };
   }
@@ -169,6 +171,7 @@ export function normalizeQuestion(raw: unknown, index: number): Question | null 
     answer,
     analysis: typeof obj.analysis === 'string' ? obj.analysis : '',
     knowledge: typeof obj.knowledge === 'string' ? obj.knowledge : '',
+    scored: obj.scored !== false,
     confidence: obj.confidence === 'low' ? 'low' : 'high',
   };
 }

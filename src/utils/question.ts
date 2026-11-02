@@ -87,6 +87,16 @@ export function isShortQuestion(question: Question): boolean {
   return question.type === 'short';
 }
 
+/** 参与自动评分：简答题永远不计分；其他题型可由管理员关闭 */
+export function isScoredQuestion(question: Question): boolean {
+  return question.type !== 'short' && question.scored !== false;
+}
+
+/** 不计分题：简答题 + 管理员手动关闭评分的题 */
+export function isUnscoredQuestion(question: Question): boolean {
+  return !isScoredQuestion(question);
+}
+
 export function isChoiceType(type: QuestionType): boolean {
   return type === 'single' || type === 'multiple' || type === 'judge';
 }

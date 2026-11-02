@@ -535,6 +535,7 @@ function normalizeResponse(json: unknown, sourceText = ''): NormalizedChunk {
         answer,
         analysis: pickText(raw.analysis, raw.explanation, raw.explain, raw.parse, raw.comment),
         knowledge: pickText(raw.knowledge, raw.knowledgePoint, raw.tag, raw.point),
+        scored: true,
         confidence: inlineFill ? 'high' : missing ? 'low' : baseConfidence,
       });
       continue;
@@ -555,6 +556,7 @@ function normalizeResponse(json: unknown, sourceText = ''): NormalizedChunk {
           answer,
           analysis: pickText(raw.analysis, raw.explanation, raw.explain, raw.parse, raw.comment),
           knowledge: pickText(raw.knowledge, raw.knowledgePoint, raw.tag, raw.point),
+          scored: true,
           confidence: isFillPlaceholder(answer) ? 'low' : baseConfidence,
         });
         continue;
@@ -570,6 +572,7 @@ function normalizeResponse(json: unknown, sourceText = ''): NormalizedChunk {
         answer: cleanAnswerText(rawAnswer),
         analysis: pickText(raw.analysis, raw.explanation, raw.explain, raw.parse, raw.comment),
         knowledge: pickText(raw.knowledge, raw.knowledgePoint, raw.tag, raw.point),
+        scored: false,
         confidence: baseConfidence === 'high' && !rawAnswer ? 'low' : baseConfidence,
       });
       continue;
@@ -607,6 +610,7 @@ function normalizeResponse(json: unknown, sourceText = ''): NormalizedChunk {
       answer,
       analysis: pickText(raw.analysis, raw.explanation, raw.explain, raw.parse, raw.comment),
       knowledge: pickText(raw.knowledge, raw.knowledgePoint, raw.tag, raw.point),
+      scored: true,
       confidence: forceLow || (baseConfidence === 'high' && !answer) ? 'low' : baseConfidence,
     });
   }
